@@ -14,35 +14,36 @@ export default function TenantShow({ tenant }: Props) {
         <>
             <Head title={tenant.name} />
 
-            <div className="space-y-6">
-                <Heading
-                    title={tenant.name}
-                    description="Current workspace details and starter placeholder."
-                />
+            <div className="space-y-4">
+                <Heading title={tenant.name} />
 
-                <Card>
-                    <CardHeader>
+                <Card className="max-w-3xl">
+                    <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4">
                         <CardTitle>Workspace</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                        <div className="grid gap-1">
+                    <CardContent className="grid gap-4 p-4 pt-0 text-sm sm:grid-cols-3">
+                        <div className="grid gap-1 rounded-lg border p-3">
                             <span className="text-muted-foreground">ULID</span>
-                            <span className="font-medium">{tenant.ulid}</span>
+                            <span className="truncate font-mono text-xs font-medium">
+                                {tenant.ulid}
+                            </span>
                         </div>
-                        <div className="grid gap-1">
+                        <div className="grid gap-1 rounded-lg border p-3">
                             <span className="text-muted-foreground">Slug</span>
                             <span className="font-medium">{tenant.slug}</span>
                         </div>
-                        <div className="grid gap-1">
-                            <span className="text-muted-foreground">Status</span>
-                            <span className="font-medium capitalize">
+                        <div className="grid gap-1 rounded-lg border p-3">
+                            <span className="text-muted-foreground">
+                                Status
+                            </span>
+                            <span className="font-semibold text-emerald-700 capitalize dark:text-emerald-300">
                                 {tenant.status}
                             </span>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Button asChild variant="secondary">
+                <Button asChild size="sm" variant="secondary">
                     <Link href={dashboard()}>Back to dashboard</Link>
                 </Button>
             </div>

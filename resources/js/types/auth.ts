@@ -23,6 +23,7 @@ export type TenantSummary = {
     name: string;
     slug: string;
     status: 'active' | 'suspended';
+    device_limit: number;
     created_at?: string;
     updated_at?: string;
 };

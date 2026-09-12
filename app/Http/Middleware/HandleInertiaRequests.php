@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => $currentTenant->name,
                 'slug' => $currentTenant->slug,
                 'status' => $currentTenant->status->value,
+                'device_limit' => $currentTenant->device_limit,
             ],
             'can' => [
                 'accessAdmin' => $request->user()?->isSuperAdmin() ?? false,

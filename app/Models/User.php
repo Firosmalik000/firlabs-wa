@@ -102,6 +102,18 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Determine if the user can manage the given tenant.
+     */
+    public function canManageTenant(Tenant $tenant): bool
+    {
+        return $this->isSuperAdmin()
+            || $this->tenants()
+                ->whereKey($tenant->getKey())
+                ->wherePivotIn('role', [TenantRole::Admin->value, TenantRole::Owner->value])
+                ->exists();
+    }
+
+    /**
      * Determine if the user owns the given tenant.
      */
     public function ownsTenant(Tenant $tenant): bool

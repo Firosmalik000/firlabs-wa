@@ -25,6 +25,7 @@ class TenantFactory extends Factory
             'slug' => fake()->unique()->slug(),
             'status' => TenantStatus::Active->value,
             'created_by' => null,
+            'device_limit' => 3,
         ];
     }
 }

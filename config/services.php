@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'gowa' => [
+        'base_url' => env('GOWA_BASE_URL'),
+        'username' => env('GOWA_USERNAME'),
+        'password' => env('GOWA_PASSWORD'),
+        'webhook_secret' => env('GOWA_WEBHOOK_SECRET'),
+        'webhook_rate_limit' => env('GOWA_WEBHOOK_RATE_LIMIT', 60),
+        'connect_timeout' => env('GOWA_CONNECT_TIMEOUT', 5),
+        'request_timeout' => env('GOWA_REQUEST_TIMEOUT', 30),
+    ],
+
 ];

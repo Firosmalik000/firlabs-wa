@@ -1,11 +1,18 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    Bot,
+    Ban,
+    Building2,
     Folder,
+    Inbox,
     LayoutGrid,
     Menu,
     Search,
-    SquareStack,
+    Smartphone,
+    ScrollText,
+    Users,
+    Webhook,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -41,9 +48,18 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as adminIndex } from '@/routes/admin';
+import { index as adminAuditLogsIndex } from '@/routes/admin/audit-logs';
+import { index as adminDevicesIndex } from '@/routes/admin/devices';
+import { index as adminFailedJobsIndex } from '@/routes/admin/failed-jobs';
+import { index as adminTenantsIndex } from '@/routes/admin/tenants';
+import { index as adminUsersIndex } from '@/routes/admin/users';
+import { index as adminWebhookLogsIndex } from '@/routes/admin/webhook-logs';
+import { index as botRulesIndex } from '@/routes/bot-rules';
+import { index as devicesIndex } from '@/routes/devices';
+import { index as inboxIndex } from '@/routes/inbox';
 import { show as tenantShow } from '@/routes/tenants';
-import type { Auth, SharedData } from '@/types/auth';
 import type { BreadcrumbItem, NavItem } from '@/types';
+import type { Auth, SharedData } from '@/types/auth';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -73,20 +89,39 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     >().props;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+    const homeHref = currentTenant
+        ? dashboard()
+        : can.accessAdmin
+          ? adminIndex()
+          : dashboard();
 
-    const mainNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-    ];
+    const mainNavItems: NavItem[] = [];
 
     if (currentTenant) {
         mainNavItems.push({
-            title: currentTenant.name,
-            href: tenantShow(currentTenant),
-            icon: SquareStack,
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        });
+    }
+
+    if (currentTenant) {
+        mainNavItems.push({
+            title: 'Inbox',
+            href: inboxIndex(),
+            icon: Inbox,
+        });
+
+        mainNavItems.push({
+            title: 'Devices',
+            href: devicesIndex(),
+            icon: Smartphone,
+        });
+
+        mainNavItems.push({
+            title: 'Bot Rules',
+            href: botRulesIndex(),
+            icon: Bot,
         });
     }
 
@@ -95,6 +130,42 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             title: 'Admin',
             href: adminIndex(),
             icon: Folder,
+        });
+
+        mainNavItems.push({
+            title: 'Users',
+            href: adminUsersIndex(),
+            icon: Users,
+        });
+
+        mainNavItems.push({
+            title: 'Tenants',
+            href: adminTenantsIndex(),
+            icon: Building2,
+        });
+
+        mainNavItems.push({
+            title: 'Devices',
+            href: adminDevicesIndex(),
+            icon: Smartphone,
+        });
+
+        mainNavItems.push({
+            title: 'Webhook Logs',
+            href: adminWebhookLogsIndex(),
+            icon: Webhook,
+        });
+
+        mainNavItems.push({
+            title: 'Audit Logs',
+            href: adminAuditLogsIndex(),
+            icon: ScrollText,
+        });
+
+        mainNavItems.push({
+            title: 'Failed Jobs',
+            href: adminFailedJobsIndex(),
+            icon: Ban,
         });
     }
 
@@ -164,7 +235,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={homeHref}
                         prefetch
                         className="flex items-center space-x-2"
                     >
@@ -173,7 +244,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
 
                     {currentTenant && (
                         <div className="ml-4 hidden min-w-0 flex-col lg:flex">
-                            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            <span className="text-xs tracking-wide text-muted-foreground uppercase">
                                 Current workspace
                             </span>
                             <Link
