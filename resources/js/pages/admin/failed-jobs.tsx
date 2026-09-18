@@ -1,11 +1,14 @@
-import { Head } from '@inertiajs/react';
+import { Head, Form } from '@inertiajs/react';
 import {
     ChevronDown,
     ChevronUp,
     CircleCheck,
+    RotateCcw,
+    Trash2,
     TriangleAlert,
 } from 'lucide-react';
 import { Fragment, useDeferredValue, useState } from 'react';
+import { forgetFailedJob, retryFailedJob } from '@/actions/App/Http/Controllers/AdminController';
 import { DataTableToolbar } from '@/components/data-table-toolbar';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -108,31 +111,67 @@ export default function AdminFailedJobs({ jobs }: Props) {
                                                         {index + 1}
                                                     </td>
                                                     <td className="px-3 py-2.5">
-                                                        <Button
-                                                            type="button"
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="size-7"
-                                                            onClick={() =>
-                                                                setExpanded(
-                                                                    expanded ===
-                                                                        job.id
-                                                                        ? null
-                                                                        : job.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            {expanded ===
-                                                            job.id ? (
-                                                                <ChevronUp className="size-4" />
-                                                            ) : (
-                                                                <ChevronDown className="size-4" />
-                                                            )}
-                                                            <span className="sr-only">
-                                                                Inspect failed
-                                                                job
-                                                            </span>
-                                                        </Button>
+                                                        <div className="flex items-center gap-1">
+                                                            <Form
+                                                                {...retryFailedJob.form(job.uuid)}
+                                                                className="inline"
+                                                            >
+                                                                <Button
+                                                                    type="submit"
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="size-7 text-emerald-700 hover:text-emerald-600 dark:text-emerald-300"
+                                                                    title="Retry job"
+                                                                >
+                                                                    <RotateCcw className="size-4" />
+                                                                    <span className="sr-only">
+                                                                        Retry failed job
+                                                                    </span>
+                                                                </Button>
+                                                            </Form>
+                                                            <Form
+                                                                {...forgetFailedJob.form(job.uuid)}
+                                                                className="inline"
+                                                            >
+                                                                <Button
+                                                                    type="submit"
+                                                                    size="icon"
+                                                                    variant="ghost"
+                                                                    className="size-7 text-red-600 hover:text-red-500"
+                                                                    title="Forget job"
+                                                                >
+                                                                    <Trash2 className="size-4" />
+                                                                    <span className="sr-only">
+                                                                        Forget failed job
+                                                                    </span>
+                                                                </Button>
+                                                            </Form>
+                                                            <Button
+                                                                type="button"
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="size-7"
+                                                                onClick={() =>
+                                                                    setExpanded(
+                                                                        expanded ===
+                                                                            job.id
+                                                                            ? null
+                                                                            : job.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {expanded ===
+                                                                job.id ? (
+                                                                    <ChevronUp className="size-4" />
+                                                                ) : (
+                                                                    <ChevronDown className="size-4" />
+                                                                )}
+                                                                <span className="sr-only">
+                                                                    Inspect failed
+                                                                    job
+                                                                </span>
+                                                            </Button>
+                                                        </div>
                                                     </td>
                                                     <td className="px-3 py-2.5">
                                                         <div className="flex items-center gap-2 font-semibold text-red-700 dark:text-red-300">

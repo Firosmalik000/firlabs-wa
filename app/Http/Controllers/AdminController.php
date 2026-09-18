@@ -8,17 +8,25 @@ use App\Enums\UserStatus;
 use App\Enums\WhatsappDeviceStatus;
 use App\Http\Requests\Admin\UpdateTenantStatusRequest;
 use App\Http\Requests\Admin\UpdateUserStatusRequest;
+use App\Models\AuditLog;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WebhookLog;
 use App\Models\WhatsappDevice;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        private readonly AuditLogService $auditLogService,
+    ) {}
+
     public function index(): Response
     {
         return Inertia::render('admin/index', [
@@ -77,6 +85,14 @@ class AdminController extends Controller
 
         $user->forceFill(['status' => $status])->save();
 
+        $this->auditLogService->record(
+            'user.status_updated',
+            actor: $request->user(),
+            subject: $user,
+            metadata: ['status' => $status->value],
+            request: $request,
+        );
+
         return back()->with('success', __('User status updated.'));
     }
 
@@ -97,6 +113,15 @@ class AdminController extends Controller
         $tenant->forceFill([
             'status' => TenantStatus::from((string) $request->validated('status')),
         ])->save();
+
+        $this->auditLogService->record(
+            'tenant.status_updated',
+            actor: $request->user(),
+            tenant: $tenant,
+            subject: $tenant,
+            metadata: ['status' => $tenant->status->value],
+            request: $request,
+        );
 
         return back()->with('success', __('Tenant status updated.'));
     }
@@ -129,7 +154,13 @@ class AdminController extends Controller
     public function auditLogs(): Response
     {
         return Inertia::render('admin/audit-logs', [
-            'message' => __('Audit logging is not implemented yet. This page is reserved for the next phase.'),
+            'logs' => AuditLog::query()
+                ->with(['tenant', 'user', 'device'])
+                ->latest('created_at')
+                ->limit(25)
+                ->get()
+                ->map(fn (AuditLog $log): array => $this->auditLogData($log))
+                ->all(),
         ]);
     }
 
@@ -143,6 +174,40 @@ class AdminController extends Controller
                 ->map(fn (object $job): array => $this->failedJobData($job))
                 ->all(),
         ]);
+    }
+
+    /**
+     * Re-queue a previously failed queued job.
+     */
+    public function retryFailedJob(Request $request, string $failedJob): RedirectResponse
+    {
+        Artisan::call('queue:retry', ['id' => [$failedJob]]);
+
+        $this->auditLogService->record(
+            'failed_job.retried',
+            actor: $request->user(),
+            metadata: ['uuid' => $failedJob],
+            request: $request,
+        );
+
+        return back()->with('success', __('Failed job queued for retry.'));
+    }
+
+    /**
+     * Forget a previously failed queued job.
+     */
+    public function forgetFailedJob(Request $request, string $failedJob): RedirectResponse
+    {
+        Artisan::call('queue:forget', ['id' => [$failedJob]]);
+
+        $this->auditLogService->record(
+            'failed_job.forgotten',
+            actor: $request->user(),
+            metadata: ['uuid' => $failedJob],
+            request: $request,
+        );
+
+        return back()->with('success', __('Failed job removed.'));
     }
 
     /**
@@ -299,6 +364,37 @@ class AdminController extends Controller
             'queue' => $job->queue,
             'failed_at' => $job->failed_at,
             'exception' => mb_substr($job->exception, 0, 240),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function auditLogData(AuditLog $log): array
+    {
+        return [
+            'id' => $log->id,
+            'ulid' => $log->ulid,
+            'action' => $log->action,
+            'tenant' => $log->tenant === null ? null : [
+                'id' => $log->tenant->id,
+                'ulid' => $log->tenant->ulid,
+                'name' => $log->tenant->name,
+            ],
+            'user' => $log->user === null ? null : [
+                'id' => $log->user->id,
+                'name' => $log->user->name,
+                'email' => $log->user->email,
+            ],
+            'device' => $log->device === null ? null : [
+                'id' => $log->device->id,
+                'ulid' => $log->device->ulid,
+                'display_name' => $log->device->display_name,
+            ],
+            'metadata' => $log->metadata ?? [],
+            'ip_address' => $log->ip_address,
+            'user_agent' => $log->user_agent,
+            'created_at' => $log->created_at?->toIso8601String(),
         ];
     }
 }

@@ -31,6 +31,9 @@ use Illuminate\Support\Str;
     'last_error_at',
     'metadata',
 ])]
+/**
+ * @property-read string $gowa_device_id
+ */
 class WhatsappDevice extends Model
 {
     /** @use HasFactory<WhatsappDeviceFactory> */

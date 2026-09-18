@@ -20,6 +20,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WhatsappMessagingTest extends TestCase
@@ -264,6 +265,67 @@ class WhatsappMessagingTest extends TestCase
         ]);
     }
 
+    public function test_queued_media_messages_are_sent_to_gowa(): void
+    {
+        Config::set('services.gowa.base_url', 'http://gowa.test');
+        Config::set('services.gowa.username', null);
+        Config::set('services.gowa.password', null);
+        Http::preventStrayRequests();
+        Http::fake([
+            'http://gowa.test/send/image' => Http::response([
+                'results' => [
+                    'message_id' => 'gowa-media-message',
+                ],
+            ]),
+        ]);
+
+        Storage::fake('public');
+        Storage::disk('public')->put('whatsapp/test/image.jpg', 'fake-image-bytes');
+
+        $tenant = Tenant::factory()->create();
+        $device = WhatsappDevice::factory()->for($tenant)->create([
+            'gowa_device_id' => 'dev_media_sender',
+        ]);
+        $contact = WhatsappContact::factory()->for($tenant)->create([
+            'external_id' => '628123456789@s.whatsapp.net',
+        ]);
+        $conversation = WhatsappConversation::factory()->for($tenant)->create([
+            'whatsapp_device_id' => $device->id,
+            'whatsapp_contact_id' => $contact->id,
+        ]);
+        $message = WhatsappMessage::factory()->for($tenant)->create([
+            'whatsapp_device_id' => $device->id,
+            'whatsapp_contact_id' => $contact->id,
+            'whatsapp_conversation_id' => $conversation->id,
+            'external_message_id' => null,
+            'status' => WhatsappMessageStatus::Queued,
+            'kind' => 'image',
+            'body' => 'Check this image',
+            'media_disk' => 'public',
+            'media_path' => 'whatsapp/test/image.jpg',
+            'media_original_name' => 'image.jpg',
+            'media_mime_type' => 'image/jpeg',
+            'media_size' => 16,
+        ]);
+
+        app()->call([new SendWhatsappMessage($message->id), 'handle']);
+
+        Http::assertSent(function (Request $request) use ($device): bool {
+            $parts = collect($request->data());
+
+            return $request->url() === 'http://gowa.test/send/image'
+                && $request->hasHeader('X-Device-Id', $device->gowa_device_id)
+                && $parts->firstWhere('name', 'phone')['contents'] === '628123456789@s.whatsapp.net'
+                && $parts->firstWhere('name', 'caption')['contents'] === 'Check this image'
+                && $request->hasFile('image');
+        });
+        $this->assertDatabaseHas('whatsapp_messages', [
+            'id' => $message->id,
+            'external_message_id' => 'gowa-media-message',
+            'status' => WhatsappMessageStatus::Sent->value,
+        ]);
+    }
+
     public function test_outgoing_messages_are_queued_and_tenant_scoped(): void
     {
         $tenant = Tenant::factory()->create();
@@ -316,6 +378,58 @@ class WhatsappMessagingTest extends TestCase
             ->assertSessionHasErrors(['media']);
 
         $this->assertDatabaseCount('whatsapp_messages', 0);
+    }
+
+    public function test_outgoing_message_per_minute_rate_limit_is_enforced(): void
+    {
+        Config::set('services.limits.outgoing_per_minute_per_device', 2);
+        Bus::fake();
+
+        [$tenant, $owner] = $this->createTenantOwner();
+        $conversation = WhatsappConversation::factory()->for($tenant)->create();
+
+        $this->actingAs($owner)
+            ->post(route('conversations.messages.store', $conversation, absolute: false), [
+                'body' => 'one',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->post(route('conversations.messages.store', $conversation, absolute: false), [
+                'body' => 'two',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->post(route('conversations.messages.store', $conversation, absolute: false), [
+                'body' => 'three',
+            ])
+            ->assertSessionHasErrors('body');
+
+        $this->assertDatabaseCount('whatsapp_messages', 2);
+    }
+
+    public function test_outgoing_message_daily_rate_limit_is_enforced(): void
+    {
+        Config::set('services.limits.outgoing_per_day', 1);
+        Bus::fake();
+
+        [$tenant, $owner] = $this->createTenantOwner();
+        $conversation = WhatsappConversation::factory()->for($tenant)->create();
+
+        $this->actingAs($owner)
+            ->post(route('conversations.messages.store', $conversation, absolute: false), [
+                'body' => 'one',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->post(route('conversations.messages.store', $conversation, absolute: false), [
+                'body' => 'two',
+            ])
+            ->assertSessionHasErrors('body');
+
+        $this->assertDatabaseCount('whatsapp_messages', 1);
     }
 
     /**

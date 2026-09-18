@@ -88,7 +88,31 @@ class DashboardTest extends TestCase
                 ->has('recentDevices', 1)
                 ->where('recentDevices.0.display_name', 'Customer Care')
                 ->has('recentConversations', 1)
-                ->where('recentConversations.0.latest_message', 'Hello support'),
+                ->where('recentConversations.0.latest_message', 'Hello support')
+                ->where('canCreateDevice', true),
+            );
+    }
+
+    public function test_dashboard_reports_device_limit_reached(): void
+    {
+        $tenant = Tenant::factory()->create(['device_limit' => 1]);
+        $user = User::factory()->create([
+            'current_tenant_id' => $tenant->id,
+        ]);
+
+        $tenant->users()->attach($user, [
+            'role' => TenantRole::Owner->value,
+        ]);
+
+        WhatsappDevice::factory()->for($tenant)->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('dashboard')
+                ->where('canCreateDevice', false)
+                ->where('stats.devices', 1),
             );
     }
 }

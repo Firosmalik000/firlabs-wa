@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property-read WhatsappDevice|null $device
+ * @property-read WhatsappContact|null $contact
+ * @property-read WhatsappConversation|null $conversation
+ */
 #[Fillable([
     'ulid',
     'tenant_id',

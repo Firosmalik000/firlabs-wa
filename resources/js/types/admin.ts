@@ -91,3 +91,28 @@ export type AdminFailedJobSummary = {
     failed_at: string | null;
     exception: string;
 };
+
+export type AdminAuditLogSummary = {
+    id: number;
+    ulid: string;
+    action: string;
+    tenant: {
+        id: number;
+        ulid: string;
+        name: string;
+    } | null;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+    } | null;
+    device: {
+        id: number;
+        ulid: string;
+        display_name: string;
+    } | null;
+    metadata: Record<string, unknown>;
+    ip_address: string | null;
+    user_agent: string | null;
+    created_at: string | null;
+};

@@ -45,4 +45,9 @@ return [
         'request_timeout' => env('GOWA_REQUEST_TIMEOUT', 30),
     ],
 
+    'limits' => [
+        'outgoing_per_day' => env('OUTGOING_MESSAGES_PER_DAY', 1000),
+        'outgoing_per_minute_per_device' => env('OUTGOING_MESSAGES_PER_MINUTE_PER_DEVICE', 20),
+    ],
+
 ];

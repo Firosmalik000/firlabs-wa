@@ -6,11 +6,13 @@ use App\Enums\GlobalRole;
 use App\Enums\TenantRole;
 use App\Enums\WhatsappConnectionStatus;
 use App\Enums\WhatsappDeviceStatus;
+use App\Jobs\SyncWhatsappDeviceStatus;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\WhatsappDevice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -319,6 +321,71 @@ class WhatsappDeviceManagementTest extends TestCase
         $this->assertSame('6281234567890', $device->phone_number);
         $this->assertSame('6281234567890@s.whatsapp.net', $device->whatsapp_jid);
         $this->assertNotNull($device->connected_at);
+    }
+
+    public function test_sync_status_job_updates_device_connection_status(): void
+    {
+        [$tenant, $owner] = $this->createTenantOwner();
+
+        $device = WhatsappDevice::factory()->for($tenant)->create([
+            'created_by' => $owner->id,
+            'status' => WhatsappDeviceStatus::Pending,
+            'connection_status' => WhatsappConnectionStatus::Disconnected,
+            'phone_number' => null,
+            'whatsapp_jid' => null,
+        ]);
+
+        $this->gowaDeviceStatus = [
+            'is_connected' => true,
+            'is_logged_in' => true,
+        ];
+        $this->gowaDeviceInfo = [
+            'phone_number' => '6281234567890',
+            'jid' => '6281234567890@s.whatsapp.net',
+        ];
+
+        app()->call([new SyncWhatsappDeviceStatus($device->id), 'handle']);
+
+        $device->refresh();
+
+        $this->assertSame(WhatsappDeviceStatus::Active, $device->status);
+        $this->assertSame(WhatsappConnectionStatus::Connected, $device->connection_status);
+        $this->assertSame('6281234567890', $device->phone_number);
+    }
+
+    public function test_sync_status_command_dispatches_jobs_for_all_devices(): void
+    {
+        Bus::fake();
+
+        [$tenant, $owner] = $this->createTenantOwner();
+        $first = WhatsappDevice::factory()->for($tenant)->create([
+            'gowa_device_id' => 'dev_sync_a',
+        ]);
+        $second = WhatsappDevice::factory()->for($tenant)->create([
+            'gowa_device_id' => 'dev_sync_b',
+        ]);
+
+        $this->artisan('devices:sync-status')->assertExitCode(0);
+
+        Bus::assertDispatched(SyncWhatsappDeviceStatus::class, fn (SyncWhatsappDeviceStatus $job): bool => $job->whatsappDeviceId === $first->id);
+        Bus::assertDispatched(SyncWhatsappDeviceStatus::class, fn (SyncWhatsappDeviceStatus $job): bool => $job->whatsappDeviceId === $second->id);
+    }
+
+    public function test_device_creation_writes_an_audit_log(): void
+    {
+        [$tenant, $owner] = $this->createTenantOwner();
+
+        $this->actingAs($owner)
+            ->post(route('devices.store'), [
+                'display_name' => 'Sales',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'device.created',
+            'tenant_id' => $tenant->id,
+            'user_id' => $owner->id,
+        ]);
     }
 
     public function test_device_page_proxies_the_qr_without_exposing_the_gowa_url(): void

@@ -22,6 +22,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'last_outbound_message_at',
     'metadata',
 ])]
+/**
+ * @property-read WhatsappDevice|null $device
+ * @property-read WhatsappContact|null $contact
+ */
 class WhatsappConversation extends Model
 {
     /** @use HasFactory<WhatsappConversationFactory> */

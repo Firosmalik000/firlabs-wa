@@ -8,6 +8,7 @@ use App\Http\Requests\StoreWhatsappMessageRequest;
 use App\Jobs\SendWhatsappMessage;
 use App\Models\WhatsappConversation;
 use App\Models\WhatsappMessage;
+use App\Services\OutgoingMessageRateLimiter;
 use App\Services\WhatsappMediaStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,10 @@ class WhatsappMessageController extends Controller
         StoreWhatsappMessageRequest $request,
         WhatsappConversation $whatsappConversation,
         WhatsappMediaStorageService $mediaStorage,
+        OutgoingMessageRateLimiter $rateLimiter,
     ): RedirectResponse {
+        $rateLimiter->ensureWithinLimits($whatsappConversation);
+
         $messageData = $this->buildMessageData($request, $whatsappConversation, $mediaStorage);
 
         $message = WhatsappMessage::query()->create($messageData);

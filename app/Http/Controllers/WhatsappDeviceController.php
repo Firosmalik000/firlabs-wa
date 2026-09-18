@@ -9,6 +9,7 @@ use App\Http\Requests\StoreWhatsappDeviceRequest;
 use App\Http\Requests\UpdateWhatsappDeviceRequest;
 use App\Models\Tenant;
 use App\Models\WhatsappDevice;
+use App\Services\AuditLogService;
 use App\Services\Gowa\GowaDeviceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class WhatsappDeviceController extends Controller
 {
     public function __construct(
         private readonly GowaDeviceService $gowaDeviceService,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     /**
@@ -103,6 +105,16 @@ class WhatsappDeviceController extends Controller
             return $device;
         });
 
+        $this->auditLogService->record(
+            'device.created',
+            actor: $request->user(),
+            tenant: $tenant,
+            device: $device,
+            subject: $device,
+            metadata: ['display_name' => $device->display_name],
+            request: $request,
+        );
+
         $this->gowaDeviceService->initializeDevice($device);
 
         $this->flashDeviceResult(
@@ -154,6 +166,15 @@ class WhatsappDeviceController extends Controller
         $whatsappDevice->fill($request->validated());
         $whatsappDevice->save();
 
+        $this->auditLogService->record(
+            'device.updated',
+            actor: $request->user(),
+            device: $whatsappDevice,
+            subject: $whatsappDevice,
+            metadata: ['display_name' => $whatsappDevice->display_name],
+            request: $request,
+        );
+
         return to_route('devices.show', $whatsappDevice)
             ->with('success', __('Device updated successfully.'));
     }
@@ -174,6 +195,15 @@ class WhatsappDeviceController extends Controller
         }
 
         $whatsappDevice->delete();
+
+        $this->auditLogService->record(
+            'device.deleted',
+            actor: $request->user(),
+            device: $whatsappDevice,
+            subject: $whatsappDevice,
+            metadata: ['display_name' => $whatsappDevice->display_name],
+            request: $request,
+        );
 
         Inertia::flash('toast', [
             'type' => 'success',

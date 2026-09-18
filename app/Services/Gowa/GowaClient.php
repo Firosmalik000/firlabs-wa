@@ -7,6 +7,7 @@ use App\Models\WhatsappMessage;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 use UnexpectedValueException;
@@ -188,8 +189,64 @@ class GowaClient
      */
     public function sendMediaMessage(WhatsappMessage $message): array
     {
+        $message->loadMissing(['device', 'contact']);
+
+        $device = $message->device;
+        $contact = $message->contact;
+
+        if ($device === null || $contact === null || $contact->external_id === '') {
+            throw new RuntimeException('The WhatsApp message is missing its device or recipient.');
+        }
+
+        if ($message->media_path === null || $message->media_disk === null) {
+            throw new RuntimeException('The WhatsApp media message is missing its media file.');
+        }
+
+        $filePath = Storage::disk($message->media_disk)->path($message->media_path);
+
+        if (! is_file($filePath)) {
+            throw new RuntimeException('The WhatsApp media file no longer exists.');
+        }
+
+        $contents = file_get_contents($filePath);
+
+        if ($contents === false) {
+            throw new RuntimeException('The WhatsApp media file could not be read.');
+        }
+
+        $endpoint = $message->kind === 'image' ? '/send/image' : '/send/file';
+        $field = $message->kind === 'image' ? 'image' : 'file';
+
+        $data = ['phone' => $contact->external_id];
+        $caption = trim((string) $message->body);
+
+        if ($caption !== '') {
+            $data['caption'] = $caption;
+        }
+
+        $results = $this->results(
+            $this->request()
+                ->withHeader('X-Device-Id', $device->gowa_device_id)
+                ->attach(
+                    $field,
+                    $contents,
+                    $message->media_original_name ?: basename($message->media_path),
+                )
+                ->post($endpoint, $data),
+        );
+
+        $externalMessageId = data_get(
+            $results,
+            'message_id',
+            data_get($results, 'id', data_get($results, 'message.id')),
+        );
+
+        if (! is_string($externalMessageId) || $externalMessageId === '') {
+            throw new UnexpectedValueException('GOWA did not return a message identifier.');
+        }
+
         return [
-            'external_message_id' => $message->external_message_id ?? 'msg_'.Str::lower((string) Str::ulid()),
+            'external_message_id' => $externalMessageId,
             'sent_at' => now()->toIso8601String(),
         ];
     }

@@ -104,6 +104,8 @@ Route::middleware(['auth', 'verified', EnsureUserIsActive::class])->group(functi
             Route::get('webhook-logs', 'webhookLogs')->name('webhook-logs.index');
             Route::get('audit-logs', 'auditLogs')->name('audit-logs.index');
             Route::get('failed-jobs', 'failedJobs')->name('failed-jobs.index');
+            Route::post('failed-jobs/{failedJob}/retry', 'retryFailedJob')->name('failed-jobs.retry');
+            Route::delete('failed-jobs/{failedJob}', 'forgetFailedJob')->name('failed-jobs.destroy');
         });
 });
 

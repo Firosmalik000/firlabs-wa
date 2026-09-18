@@ -4,6 +4,7 @@ import {
     Bot,
     ChevronRight,
     CircleAlert,
+    CircleCheck,
     Inbox,
     MessageCircleMore,
     Plus,
@@ -69,6 +70,8 @@ type Props = {
     stats: DashboardStats;
     recentDevices: RecentDevice[];
     recentConversations: RecentConversation[];
+    gatewayConfigured: boolean;
+    canCreateDevice: boolean;
 };
 
 const connectionLabel: Record<WhatsappConnectionStatus, string> = {
@@ -79,6 +82,12 @@ const connectionLabel: Record<WhatsappConnectionStatus, string> = {
     logged_out: 'Logged out',
     waiting_scan: 'Waiting to pair',
 };
+
+const needsAttentionStatuses = new Set<WhatsappConnectionStatus>([
+    'error',
+    'disconnected',
+    'logged_out',
+]);
 
 function formatRelativeDate(value: string | null): string {
     if (!value) {
@@ -96,6 +105,8 @@ export default function Dashboard({
     stats,
     recentDevices,
     recentConversations,
+    gatewayConfigured,
+    canCreateDevice,
 }: Props) {
     if (!tenant) {
         return (
@@ -141,6 +152,14 @@ export default function Dashboard({
         stats.devices > 0
             ? Math.round((stats.connected_devices / stats.devices) * 100)
             : 0;
+    const devicesNeedingAttention = recentDevices.filter((device) =>
+        needsAttentionStatuses.has(device.connection_status),
+    ).length;
+    const devicesWaitingToPair = recentDevices.filter(
+        (device) => device.connection_status === 'waiting_scan',
+    ).length;
+    const deviceLimitReached =
+        tenant.device_limit > 0 && stats.devices >= tenant.device_limit;
 
     return (
         <>
@@ -176,16 +195,24 @@ export default function Dashboard({
                                         Open inbox
                                     </Link>
                                 </Button>
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-                                >
-                                    <Link href={devicesCreate()}>
-                                        <Plus className="size-4" />
-                                        Connect device
-                                    </Link>
-                                </Button>
+                                {canCreateDevice ? (
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                                    >
+                                        <Link href={devicesCreate()}>
+                                            <Plus className="size-4" />
+                                            Connect device
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <span className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm text-emerald-100/80">
+                                        <Smartphone className="size-4" />
+                                        Device limit reached (
+                                        {stats.devices}/{tenant.device_limit})
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -335,22 +362,66 @@ export default function Dashboard({
                                 <div className="grid gap-2">
                                     <div className="flex justify-between text-xs font-medium">
                                         <span>Device capacity</span>
-                                        <span>{deviceUsage}%</span>
+                                        <span>
+                                            {deviceLimitReached ? (
+                                                <span className="font-semibold text-amber-600 dark:text-amber-400">
+                                                    Limit reached
+                                                </span>
+                                            ) : (
+                                                `${deviceUsage}%`
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="h-2 overflow-hidden rounded-full bg-muted">
                                         <div
-                                            className="h-full rounded-full bg-gradient-to-r from-emerald-600 to-lime-400 transition-all duration-700"
+                                            className={`h-full rounded-full transition-all duration-700 ${
+                                                deviceLimitReached
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-gradient-to-r from-emerald-600 to-lime-400'
+                                            }`}
                                             style={{ width: `${deviceUsage}%` }}
                                         />
                                     </div>
                                 </div>
 
+                                {recentDevices.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                        <StatusChip
+                                            tone="emerald"
+                                            label="Connected"
+                                            count={stats.connected_devices}
+                                        />
+                                        <StatusChip
+                                            tone="amber"
+                                            label="Needs attention"
+                                            count={devicesNeedingAttention}
+                                        />
+                                        <StatusChip
+                                            tone="sky"
+                                            label="Waiting to pair"
+                                            count={devicesWaitingToPair}
+                                        />
+                                    </div>
+                                )}
+
                                 {recentDevices.length === 0 ? (
                                     <EmptyPanel
                                         icon={Smartphone}
-                                        title="No device connected"
-                                        href={devicesCreate()}
-                                        action="Connect device"
+                                        title={
+                                            canCreateDevice
+                                                ? 'No device connected'
+                                                : 'No device connected yet'
+                                        }
+                                        href={
+                                            canCreateDevice
+                                                ? devicesCreate()
+                                                : devicesIndex()
+                                        }
+                                        action={
+                                            canCreateDevice
+                                                ? 'Connect device'
+                                                : 'Review devices'
+                                        }
                                         compact
                                     />
                                 ) : (
@@ -399,22 +470,14 @@ export default function Dashboard({
                             </CardContent>
                         </Card>
 
-                        <Card className="border-amber-200/70 bg-amber-50/60 dark:border-amber-900/60 dark:bg-amber-950/15">
-                            <CardContent className="flex items-start gap-4 p-5">
-                                <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-200/70 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                                    <CircleAlert className="size-5" />
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                    <p className="font-semibold">
-                                        Quick setup check
-                                    </p>
-                                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                        GOWA and queue worker must remain
-                                        online.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <ReadinessPanel
+                            gatewayConfigured={gatewayConfigured}
+                            totalDevices={stats.devices}
+                            connectedDevices={stats.connected_devices}
+                            devicesNeedingAttention={devicesNeedingAttention}
+                            devicesWaitingToPair={devicesWaitingToPair}
+                            canCreateDevice={canCreateDevice}
+                        />
                     </div>
                 </section>
             </div>
@@ -513,6 +576,180 @@ function EmptyPanel({
                 <Link href={href}>{action}</Link>
             </Button>
         </div>
+    );
+}
+
+function StatusChip({
+    tone,
+    label,
+    count,
+}: {
+    tone: 'emerald' | 'amber' | 'sky';
+    label: string;
+    count: number;
+}) {
+    const tones = {
+        emerald:
+            'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+        amber: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+        sky: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+    };
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${tones[tone]}`}
+        >
+            <span className="size-1.5 rounded-full bg-current" />
+            {label}
+            <span className="tabular-nums">{count}</span>
+        </span>
+    );
+}
+
+function ReadinessPanel({
+    gatewayConfigured,
+    totalDevices,
+    connectedDevices,
+    devicesNeedingAttention,
+    devicesWaitingToPair,
+    canCreateDevice,
+}: {
+    gatewayConfigured: boolean;
+    totalDevices: number;
+    connectedDevices: number;
+    devicesNeedingAttention: number;
+    devicesWaitingToPair: number;
+    canCreateDevice: boolean;
+}) {
+    if (!gatewayConfigured) {
+        return (
+            <ReadinessCard
+                tone="amber"
+                icon={CircleAlert}
+                title="Gateway not configured"
+                description="Set GOWA_BASE_URL in your environment to start sending and receiving messages."
+            />
+        );
+    }
+
+    if (totalDevices === 0) {
+        return (
+            <ReadinessCard
+                tone="sky"
+                icon={Smartphone}
+                title="No devices yet"
+                description="Connect your first WhatsApp device to get started."
+                href={canCreateDevice ? devicesCreate() : undefined}
+                action="Connect device"
+            />
+        );
+    }
+
+    if (connectedDevices === 0) {
+        return (
+            <ReadinessCard
+                tone="amber"
+                icon={WifiOff}
+                title="No device is online"
+                description="All of your devices are currently offline."
+                href={devicesIndex()}
+                action="Review devices"
+            />
+        );
+    }
+
+    if (devicesNeedingAttention > 0) {
+        return (
+            <ReadinessCard
+                tone="amber"
+                icon={CircleAlert}
+                title={`${devicesNeedingAttention} device${devicesNeedingAttention === 1 ? '' : 's'} need attention`}
+                description="Reconnect or re-pair them to resume messaging reliably."
+                href={devicesIndex()}
+                action="Review devices"
+            />
+        );
+    }
+
+    if (devicesWaitingToPair > 0) {
+        return (
+            <ReadinessCard
+                tone="sky"
+                icon={Wifi}
+                title={`${devicesWaitingToPair} device${devicesWaitingToPair === 1 ? '' : 's'} waiting to pair`}
+                description="Finish pairing them to bring them online."
+                href={devicesIndex()}
+                action="Open devices"
+            />
+        );
+    }
+
+    return (
+        <ReadinessCard
+            tone="success"
+            icon={CircleCheck}
+            title="All systems online"
+            description={`${connectedDevices} of ${totalDevices} devices connected.`}
+        />
+    );
+}
+
+const readinessTones = {
+    success: {
+        card: 'border-emerald-200/70 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-950/15',
+        icon: 'bg-emerald-200/70 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    },
+    sky: {
+        card: 'border-sky-200/70 bg-sky-50/60 dark:border-sky-900/60 dark:bg-sky-950/15',
+        icon: 'bg-sky-200/70 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+    },
+    amber: {
+        card: 'border-amber-200/70 bg-amber-50/60 dark:border-amber-900/60 dark:bg-amber-950/15',
+        icon: 'bg-amber-200/70 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    },
+};
+
+function ReadinessCard({
+    tone,
+    icon: Icon,
+    title,
+    description,
+    href,
+    action,
+}: {
+    tone: keyof typeof readinessTones;
+    icon: typeof CircleAlert;
+    title: string;
+    description: string;
+    href?: ReturnType<typeof devicesIndex>;
+    action?: string;
+}) {
+    return (
+        <Card className={readinessTones[tone].card}>
+            <CardContent className="flex items-start gap-4 p-5">
+                <span
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-2xl ${readinessTones[tone].icon}`}
+                >
+                    <Icon className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                    <p className="font-semibold">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                        {description}
+                    </p>
+                    {href && action && (
+                        <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="mt-3"
+                        >
+                            <Link href={href}>{action}</Link>
+                        </Button>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 

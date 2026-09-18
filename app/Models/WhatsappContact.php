@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'last_message_at',
     'metadata',
 ])]
+/**
+ * @property-read string $external_id
+ */
 class WhatsappContact extends Model
 {
     /** @use HasFactory<WhatsappContactFactory> */

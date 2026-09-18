@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Models\WebhookLog;
 use App\Models\WhatsappDevice;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -100,7 +102,7 @@ class SuperAdminManagementTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/audit-logs')
-                ->where('message', __('Audit logging is not implemented yet. This page is reserved for the next phase.')),
+                ->has('logs', 0),
             );
 
         $this->actingAs($superAdmin)
@@ -110,6 +112,94 @@ class SuperAdminManagementTest extends TestCase
                 ->component('admin/failed-jobs')
                 ->has('jobs', 0),
             );
+    }
+
+    public function test_super_admin_can_forget_a_failed_job(): void
+    {
+        $superAdmin = User::factory()->create([
+            'global_role' => GlobalRole::SuperAdmin->value,
+        ]);
+
+        $failedJobUuid = (string) Str::uuid();
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => $failedJobUuid,
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => '{}',
+            'exception' => 'Test exception',
+            'failed_at' => now(),
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->delete(route('admin.failed-jobs.destroy', $failedJobUuid))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('failed_jobs', ['uuid' => $failedJobUuid]);
+    }
+
+    public function test_super_admin_can_retry_a_failed_job(): void
+    {
+        $superAdmin = User::factory()->create([
+            'global_role' => GlobalRole::SuperAdmin->value,
+        ]);
+
+        $failedJobUuid = (string) Str::uuid();
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => $failedJobUuid,
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => '{}',
+            'exception' => 'Test exception',
+            'failed_at' => now(),
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->post(route('admin.failed-jobs.retry', $failedJobUuid))
+            ->assertRedirect();
+    }
+
+    public function test_admin_actions_create_audit_logs(): void
+    {
+        $superAdmin = User::factory()->create([
+            'global_role' => GlobalRole::SuperAdmin->value,
+        ]);
+        $tenant = Tenant::factory()->create();
+        $user = User::factory()->create();
+
+        $this->actingAs($superAdmin)
+            ->patch(route('admin.users.status.update', $user), ['status' => 'suspended'])
+            ->assertRedirect();
+
+        $this->actingAs($superAdmin)
+            ->patch(route('admin.tenants.status.update', $tenant), ['status' => 'suspended'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'user.status_updated',
+            'user_id' => $superAdmin->id,
+            'subject_id' => $user->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'tenant.status_updated',
+            'user_id' => $superAdmin->id,
+            'tenant_id' => $tenant->id,
+            'subject_id' => $tenant->id,
+        ]);
+    }
+
+    public function test_regular_users_cannot_manage_failed_jobs(): void
+    {
+        [$tenant, $owner] = $this->createTenantOwner();
+
+        $this->actingAs($owner)
+            ->post(route('admin.failed-jobs.retry', (string) Str::uuid()))
+            ->assertForbidden();
+
+        $this->actingAs($owner)
+            ->delete(route('admin.failed-jobs.destroy', (string) Str::uuid()))
+            ->assertForbidden();
     }
 
     public function test_regular_users_cannot_access_admin_sections(): void

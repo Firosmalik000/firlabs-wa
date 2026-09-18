@@ -28,6 +28,8 @@ class DashboardController extends Controller
                 'stats' => $this->emptyStats(),
                 'recentDevices' => [],
                 'recentConversations' => [],
+                'gatewayConfigured' => filled(config('services.gowa.base_url')),
+                'canCreateDevice' => false,
             ]);
         }
 
@@ -40,6 +42,8 @@ class DashboardController extends Controller
                 'status' => $tenant->status->value,
                 'device_limit' => $tenant->device_limit,
             ],
+            'gatewayConfigured' => filled(config('services.gowa.base_url')),
+            'canCreateDevice' => $tenant->devices()->count() < $tenant->device_limit,
             'stats' => [
                 'devices' => $tenant->devices()->count(),
                 'connected_devices' => $tenant->devices()
