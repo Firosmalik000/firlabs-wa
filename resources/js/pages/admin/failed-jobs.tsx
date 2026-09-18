@@ -57,14 +57,14 @@ export default function AdminFailedJobs({ jobs }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari UUID, queue, exception..."
+                        placeholder="Search UUID, queue, exception..."
                         resultCount={filteredJobs.length}
                         filter={{
                             label: 'Queue',
                             value: queue,
                             onChange: setQueue,
                             options: [
-                                { label: 'Semua queue', value: 'all' },
+                                { label: 'All queues', value: 'all' },
                                 ...queues.map((value) => ({
                                     label: value,
                                     value,
@@ -76,7 +76,7 @@ export default function AdminFailedJobs({ jobs }: Props) {
                         {filteredJobs.length === 0 ? (
                             <div className="flex items-center justify-center gap-2 px-4 py-12 text-sm text-muted-foreground">
                                 <CircleCheck className="size-5 text-emerald-600" />{' '}
-                                Tidak ada failed job.
+                                No failed jobs.
                             </div>
                         ) : (
                             <div className="overflow-x-auto">

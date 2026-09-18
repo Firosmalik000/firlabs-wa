@@ -29,22 +29,22 @@ const conversations = [
     [
         'AR',
         'Alya Rahman',
-        'Boleh cek status pesanan saya?',
+        'Can you check my order status?',
         '09:42',
         'bg-[#f3a86f]',
     ],
     [
         'BS',
         'Firos Store',
-        'Barangnya sudah sampai. Terima kasih!',
+        'The package arrived. Thank you!',
         '09:18',
         'bg-[#70bfa5]',
     ],
     [
         'NP',
         'Nadia Putri',
-        'Apakah tersedia warna lainnya?',
-        'Kemarin',
+        'Are other colors available?',
+        'Yesterday',
         'bg-[#8e9fce]',
     ],
 ];
@@ -90,10 +90,10 @@ function InboxVisual() {
                 </span>
                 <div>
                     <p className="text-xs font-extrabold text-[#123c2f]">
-                        3 perangkat aktif
+                        3 active devices
                     </p>
                     <p className="text-[9px] text-[#788981]">
-                        Baru disinkronkan
+                        Just synced
                     </p>
                 </div>
             </div>
@@ -169,17 +169,17 @@ function InboxVisual() {
                         </div>
                         <div className="flex flex-1 flex-col gap-3 bg-[radial-gradient(circle_at_20%_20%,#ffffff_0,#f3f8f3_48%,#edf5ef_100%)] p-4">
                             <span className="self-center rounded-full bg-white px-3 py-1 text-[8px] font-bold text-[#89968f] shadow-sm">
-                                Hari ini
+                                Today
                             </span>
                             <div className="max-w-[82%] rounded-2xl rounded-bl-sm bg-white p-3 text-[10px] leading-4 text-[#385248] shadow-sm">
-                                Halo, boleh dibantu cek status pesanan saya?
+                                Hi, could you help check my order status?
                                 <span className="mt-1 block text-right text-[7px] text-[#9aa59f]">
                                     09:41
                                 </span>
                             </div>
                             <div className="max-w-[86%] self-end rounded-2xl rounded-br-sm bg-[#c9f7a7] p-3 text-[10px] leading-4 text-[#234735] shadow-sm">
-                                Tentu, Kak Alya. Pesanan sedang dikirim dan
-                                diperkirakan tiba sore ini.
+                                Of course, Alya. Your order is on its way and
+                                should arrive this afternoon.
                                 <span className="mt-1 flex justify-end text-[7px] text-[#547262]">
                                     09:42 ✓✓
                                 </span>
@@ -190,17 +190,17 @@ function InboxVisual() {
                                 </span>
                                 <div>
                                     <p className="text-[9px] font-black">
-                                        Balasan otomatis diterapkan
+                                        Auto reply applied
                                     </p>
                                     <p className="text-[8px] text-[#89968f]">
-                                        Rule: cek status pesanan
+                                        Rule: check order status
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 border-t border-[#e0e9e2] bg-white p-3">
                             <span className="h-9 flex-1 rounded-full bg-[#f0f4f1] px-4 py-2 text-[9px] text-[#9aa59f]">
-                                Tulis balasan...
+                                Write a reply...
                             </span>
                             <span className="flex size-9 items-center justify-center rounded-full bg-[#123c2f] text-[#d9ffad]">
                                 <Send className="size-3.5" />
@@ -216,9 +216,9 @@ function InboxVisual() {
                 </span>
                 <div>
                     <p className="text-[9px] font-bold text-[#76867e]">
-                        Waktu respons
+                        Response time
                     </p>
-                    <p className="text-lg font-black text-[#123c2f]">1m 24d</p>
+                    <p className="text-lg font-black text-[#123c2f]">1m 24s</p>
                 </div>
             </div>
         </div>
@@ -259,6 +259,7 @@ function FeatureArtwork({ kind }: { kind: 'devices' | 'rules' | 'team' }) {
         return (
             <div className="relative flex h-56 flex-col justify-between overflow-hidden rounded-[26px] bg-[#fff2d6] p-5">
                 <svg
+                    aria-hidden="true"
                     className="absolute inset-0 size-full opacity-25"
                     viewBox="0 0 400 220"
                 >
@@ -271,13 +272,13 @@ function FeatureArtwork({ kind }: { kind: 'devices' | 'rules' | 'team' }) {
                     />
                 </svg>
                 <span className="relative self-start rounded-full bg-white px-3 py-1.5 text-[9px] font-black text-[#79551a] shadow-sm">
-                    Pesan berisi “harga”
+                    Message contains &ldquo;price&rdquo;
                 </span>
                 <span className="relative mx-auto flex size-20 items-center justify-center rounded-full border-[10px] border-white/65 bg-[#153e32] text-[#d9ffad] shadow-xl">
                     <Bot className="size-7" />
                 </span>
                 <span className="relative ml-auto max-w-[82%] rounded-2xl rounded-br-sm bg-white p-3 text-[9px] leading-4 font-bold text-[#4e3d1f] shadow-sm">
-                    Ini daftar harga terbaru kami.
+                    Here is our latest price list.
                 </span>
             </div>
         );
@@ -287,7 +288,7 @@ function FeatureArtwork({ kind }: { kind: 'devices' | 'rules' | 'team' }) {
         <div className="relative flex h-56 flex-col justify-between overflow-hidden rounded-[26px] bg-[#ebe9ff] p-5">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black tracking-[0.16em] text-[#635b91] uppercase">
-                    Tim aktif
+                    Active team
                 </span>
                 <span className="rounded-full bg-white/70 px-2.5 py-1 text-[8px] font-bold text-[#635b91]">
                     4 online
@@ -332,7 +333,7 @@ export default function Welcome() {
             <Head title="WhatsApp teamwork, simplified">
                 <meta
                     name="description"
-                    content="Kelola perangkat, percakapan, tim, dan otomasi WhatsApp dalam satu workspace."
+                    content="Manage WhatsApp devices, conversations, teams, and automation in one workspace."
                 />
             </Head>
 
@@ -341,20 +342,23 @@ export default function Welcome() {
                     <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
                         <Brand />
                         <div className="hidden items-center gap-8 text-sm font-bold text-[#496159] md:flex">
-                            <a href="#fitur" className="hover:text-[#123c2f]">
-                                Fitur
-                            </a>
                             <a
-                                href="#cara-kerja"
+                                href="#features"
                                 className="hover:text-[#123c2f]"
                             >
-                                Cara kerja
+                                Features
                             </a>
                             <a
-                                href="#keamanan"
+                                href="#how-it-works"
                                 className="hover:text-[#123c2f]"
                             >
-                                Keamanan
+                                How it works
+                            </a>
+                            <a
+                                href="#security"
+                                className="hover:text-[#123c2f]"
+                            >
+                                Security
                             </a>
                         </div>
                         <div className="flex items-center gap-2">
@@ -364,7 +368,7 @@ export default function Welcome() {
                                     prefetch
                                     className="hidden rounded-full px-4 py-2.5 text-sm font-black hover:bg-white sm:block"
                                 >
-                                    Masuk
+                                    Sign in
                                 </Link>
                             )}
                             <Link
@@ -372,7 +376,7 @@ export default function Welcome() {
                                 prefetch
                                 className="group flex items-center gap-2 rounded-full bg-[#123c2f] px-4 py-2.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#1b5945] motion-reduce:transform-none"
                             >
-                                {auth.user ? 'Dashboard' : 'Mulai'}
+                                {auth.user ? 'Dashboard' : 'Get started'}
                                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                             </Link>
                         </div>
@@ -389,12 +393,12 @@ export default function Welcome() {
                                     <span className="flex size-6 items-center justify-center rounded-full bg-[#d9ffad]">
                                         <Sparkles className="size-3" />
                                     </span>
-                                    WhatsApp workspace untuk tim modern
+                                    WhatsApp workspace for modern teams
                                 </span>
                                 <h1 className="max-w-xl font-serif text-[clamp(3.5rem,8vw,6.7rem)] leading-[0.88] font-black tracking-[-0.065em] text-[#123c2f]">
-                                    Chat lebih{' '}
+                                    Tidier chats.{' '}
                                     <span className="relative inline-block italic">
-                                        rapi.
+                                        Faster teams.
                                         <svg
                                             className="absolute -bottom-3 left-0 h-4 w-full text-[#8fd64d]"
                                             viewBox="0 0 260 22"
@@ -409,13 +413,12 @@ export default function Welcome() {
                                             />
                                         </svg>
                                     </span>
-                                    <br />
-                                    Tim lebih cepat.
                                 </h1>
                                 <p className="mt-8 max-w-lg text-base leading-8 text-[#5d7069] sm:text-lg">
-                                    Satukan perangkat, percakapan pelanggan,
-                                    anggota tim, dan otomasi dalam satu
-                                    dashboard yang nyaman digunakan setiap hari.
+                                    Bring devices, customer conversations, team
+                                    members, and automation together in one
+                                    dashboard your team will enjoy using every
+                                    day.
                                 </p>
                                 <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                                     <Link
@@ -424,17 +427,17 @@ export default function Welcome() {
                                         className="group inline-flex items-center justify-center gap-3 rounded-full bg-[#123c2f] px-7 py-4 text-sm font-black text-white shadow-[0_15px_35px_rgba(18,60,47,0.2)] transition hover:-translate-y-1 hover:bg-[#1a5643] motion-reduce:transform-none"
                                     >
                                         {auth.user
-                                            ? 'Buka dashboard'
-                                            : 'Buat workspace gratis'}
+                                            ? 'Open dashboard'
+                                            : 'Create a free workspace'}
                                         <span className="flex size-7 items-center justify-center rounded-full bg-[#d9ffad] text-[#123c2f]">
                                             <ArrowRight className="size-3.5" />
                                         </span>
                                     </Link>
                                     <a
-                                        href="#fitur"
+                                        href="#how-it-works"
                                         className="inline-flex items-center justify-center rounded-full border border-[#cbd9cf] bg-white/70 px-7 py-4 text-sm font-black hover:bg-white"
                                     >
-                                        Lihat cara kerja
+                                        See how it works
                                     </a>
                                 </div>
                                 <div className="mt-9 flex items-center gap-4">
@@ -449,9 +452,9 @@ export default function Welcome() {
                                     </div>
                                     <p className="text-xs leading-5 text-[#6b7c75]">
                                         <strong className="block text-[#24483d]">
-                                            Dibuat untuk kolaborasi
+                                            Built for collaboration
                                         </strong>
-                                        Owner, admin, dan operator.
+                                        Owners, admins, and operators.
                                     </p>
                                 </div>
                             </div>
@@ -464,7 +467,7 @@ export default function Welcome() {
                     <section className="border-y border-[#dce5de] bg-white/70 py-7">
                         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-12 gap-y-5 px-5 text-xs font-black tracking-[0.12em] text-[#789087] uppercase lg:justify-between lg:px-10">
                             <span className="text-[#24483d]">
-                                Dibuat untuk:
+                                Built for:
                             </span>
                             <span>Customer Service</span>
                             <span>Sales</span>
@@ -474,24 +477,23 @@ export default function Welcome() {
                     </section>
 
                     <section
-                        id="fitur"
+                        id="features"
                         className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32"
                     >
                         <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
                             <div>
                                 <p className="mb-4 text-xs font-black tracking-[0.18em] text-[#4c7567] uppercase">
-                                    Semua yang penting
+                                    Everything that matters
                                 </p>
                                 <h2 className="font-serif text-4xl leading-none font-black tracking-[-0.045em] sm:text-6xl">
-                                    Tenang di belakang layar, sigap di depan
-                                    pelanggan.
+                                    Calm behind the scenes, responsive in
+                                    front of customers.
                                 </h2>
                             </div>
                             <p className="max-w-lg text-base leading-8 text-[#687a73] lg:justify-self-end">
-                                Tidak ada lagi tab tercecer atau akses perangkat
-                                yang dibagikan sembarangan. Semua aktivitas
-                                mengalir melalui Laravel sebagai sumber data
-                                utama.
+                                No more scattered tabs or casually shared
+                                device access. Every activity flows through
+                                Laravel as the single source of truth.
                             </p>
                         </div>
 
@@ -500,23 +502,23 @@ export default function Welcome() {
                                 {
                                     kind: 'devices' as const,
                                     icon: Inbox,
-                                    label: 'Satu inbox',
-                                    title: 'Semua percakapan, satu kendali.',
-                                    text: 'Kelola beberapa nomor WhatsApp tanpa kehilangan konteks.',
+                                    label: 'One inbox',
+                                    title: 'Every conversation, one control.',
+                                    text: 'Manage multiple WhatsApp numbers without losing context.',
                                 },
                                 {
                                     kind: 'rules' as const,
                                     icon: Workflow,
-                                    label: 'Otomasi praktis',
-                                    title: 'Balasan cepat yang tetap personal.',
-                                    text: 'Atur kata kunci per perangkat dan biarkan queue bekerja.',
+                                    label: 'Practical automation',
+                                    title: 'Fast replies that stay personal.',
+                                    text: 'Set keywords per device and let the queue do the work.',
                                 },
                                 {
                                     kind: 'team' as const,
                                     icon: ShieldCheck,
-                                    label: 'Workspace aman',
-                                    title: 'Akses tim jelas dan terisolasi.',
-                                    text: 'Tenant, peran, perangkat, dan data dilindungi dari Laravel.',
+                                    label: 'Secure workspace',
+                                    title: 'Clear, isolated team access.',
+                                    text: 'Tenants, roles, devices, and data protected by Laravel.',
                                 },
                             ].map((feature) => (
                                 <article
@@ -542,37 +544,37 @@ export default function Welcome() {
                     </section>
 
                     <section
-                        id="cara-kerja"
+                        id="how-it-works"
                         className="relative overflow-hidden bg-[#123c2f] py-24 text-white lg:py-32"
                     >
                         <div className="absolute -top-48 right-[-10rem] size-[38rem] rounded-full border-[90px] border-[#b9ff66]/5" />
                         <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
                             <p className="mb-4 text-xs font-black tracking-[0.18em] text-[#b9ff66] uppercase">
-                                Alur yang jelas
+                                A clear flow
                             </p>
                             <h2 className="max-w-4xl font-serif text-4xl leading-none font-black tracking-[-0.045em] sm:text-6xl">
-                                Dari pesan masuk sampai selesai, tanpa putus
-                                konteks.
+                                From incoming message to resolution, without
+                                losing context.
                             </h2>
                             <div className="mt-16 grid gap-4 md:grid-cols-3">
                                 {[
                                     [
                                         Radio,
                                         '01',
-                                        'Hubungkan perangkat',
-                                        'Identitas perangkat dibuat aman oleh Laravel.',
+                                        'Connect devices',
+                                        'Device identities are created securely by Laravel.',
                                     ],
                                     [
                                         Inbox,
                                         '02',
-                                        'Terima dan bagikan',
-                                        'Pesan masuk siap ditangani anggota tim.',
+                                        'Receive and share',
+                                        'Incoming messages are ready for your team to handle.',
                                     ],
                                     [
                                         Gauge,
                                         '03',
-                                        'Balas dan pantau',
-                                        'Status, antrean, dan kegagalan selalu terlihat.',
+                                        'Reply and monitor',
+                                        'Status, queues, and failures are always visible.',
                                     ],
                                 ].map(([Icon, number, title, text]) => {
                                     const StepIcon = Icon as typeof Radio;
@@ -586,7 +588,7 @@ export default function Welcome() {
                                                 <StepIcon className="size-5" />
                                             </span>
                                             <p className="mb-3 text-[10px] font-black tracking-[0.18em] text-[#b9ff66] uppercase">
-                                                Langkah {number as string}
+                                                Step {number as string}
                                             </p>
                                             <h3 className="text-xl font-black">
                                                 {title as string}
@@ -602,7 +604,7 @@ export default function Welcome() {
                     </section>
 
                     <section
-                        id="keamanan"
+                        id="security"
                         className="mx-auto grid max-w-7xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-2 lg:items-center lg:px-10 lg:py-32"
                     >
                         <div className="relative rounded-[34px] border border-[#d7e2da] bg-white p-6 shadow-[0_30px_80px_rgba(27,70,55,0.12)] sm:p-8">
@@ -612,7 +614,7 @@ export default function Welcome() {
                                         Workspace security
                                     </p>
                                     <p className="text-[10px] text-[#7b8c84]">
-                                        Perlindungan aktif
+                                        Active protection
                                     </p>
                                 </div>
                                 <span className="flex size-11 items-center justify-center rounded-2xl bg-[#dff8ec] text-[#176646]">
@@ -643,32 +645,33 @@ export default function Welcome() {
                                 </span>
                                 <p className="text-xs leading-5">
                                     <strong className="block">
-                                        Akses berbasis peran
+                                        Role-based access
                                     </strong>
                                     <span className="text-white/55">
-                                        Super Admin, Owner, Admin, dan Operator.
+                                        Super Admin, Owner, Admin, and
+                                        Operator.
                                     </span>
                                 </p>
                             </div>
                         </div>
                         <div className="lg:pl-8">
                             <p className="mb-4 text-xs font-black tracking-[0.18em] text-[#4c7567] uppercase">
-                                Aman sejak fondasi
+                                Secure by design
                             </p>
                             <h2 className="font-serif text-4xl leading-none font-black tracking-[-0.045em] sm:text-6xl">
-                                GOWA bekerja di belakang. Laravel tetap memegang
-                                kendali.
+                                GOWA works behind the scenes. Laravel stays in
+                                control.
                             </h2>
                             <p className="mt-7 text-base leading-8 text-[#667970]">
-                                Pengguna normal tidak pernah mengakses gateway
-                                langsung. Tenant, otorisasi, antrean, dan jejak
-                                proses diselesaikan di lapisan aplikasi.
+                                Regular users never touch the gateway directly.
+                                Tenants, authorization, queues, and audit
+                                trails are handled in the application layer.
                             </p>
                             <div className="mt-8 grid gap-3">
                                 {[
-                                    'Tenant tidak dipercaya dari browser atau webhook.',
-                                    'Kredensial gateway tidak dikirim ke frontend.',
-                                    'Pengiriman pesan diproses melalui queue.',
+                                    'Tenants are never trusted from the browser or webhooks.',
+                                    'Gateway credentials are never sent to the frontend.',
+                                    'Message delivery is processed through queues.',
                                 ].map((item) => (
                                     <p
                                         key={item}
@@ -688,10 +691,10 @@ export default function Welcome() {
                         <div className="relative mx-auto grid max-w-7xl gap-10 overflow-hidden rounded-[36px] bg-[#e5ffbe] px-7 py-16 sm:px-12 lg:grid-cols-[1fr_auto] lg:items-center lg:px-20">
                             <div>
                                 <p className="mb-4 text-xs font-black tracking-[0.18em] text-[#53703e] uppercase">
-                                    Siap merapikan percakapan?
+                                    Ready to tidy up conversations?
                                 </p>
                                 <h2 className="max-w-3xl font-serif text-4xl leading-none font-black tracking-[-0.05em] sm:text-6xl">
-                                    Bawa WhatsApp bisnis ke satu workspace.
+                                    Bring business WhatsApp into one workspace.
                                 </h2>
                             </div>
                             <Link
@@ -700,8 +703,8 @@ export default function Welcome() {
                                 className="inline-flex items-center justify-center gap-3 rounded-full bg-[#123c2f] px-7 py-4 text-sm font-black text-white transition hover:-translate-y-1 motion-reduce:transform-none"
                             >
                                 {auth.user
-                                    ? 'Masuk dashboard'
-                                    : 'Mulai sekarang'}
+                                    ? 'Open dashboard'
+                                    : 'Get started now'}
                                 <ArrowRight className="size-4" />
                             </Link>
                         </div>
@@ -711,13 +714,15 @@ export default function Welcome() {
                 <footer className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 text-sm text-[#71817a] sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10">
                     <Brand />
                     <p>WhatsApp operations, organized with care.</p>
-                    <Link
-                        href={login()}
-                        prefetch
-                        className="font-bold hover:text-[#123c2f]"
-                    >
-                        Masuk
-                    </Link>
+                    {!auth.user && (
+                        <Link
+                            href={login()}
+                            prefetch
+                            className="font-bold hover:text-[#123c2f]"
+                        >
+                            Sign in
+                        </Link>
+                    )}
                 </footer>
             </div>
         </>

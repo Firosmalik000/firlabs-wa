@@ -25,6 +25,7 @@ import {
     edit as botRulesEdit,
     index as botRulesIndex,
 } from '@/routes/bot-rules';
+import { index as devicesIndex } from '@/routes/devices';
 import type { TenantSummary } from '@/types/auth';
 import type { BotRuleDeviceSummary, BotRuleSummary } from '@/types/bot-rule';
 
@@ -43,11 +44,15 @@ type DeviceRuleGroup = {
 function matchTypeLabel(value: string): string {
     return (
         {
-            contains: 'Mengandung',
-            exact: 'Sama persis',
-            starts_with: 'Diawali',
+            contains: 'Contains',
+            exact: 'Exact',
+            starts_with: 'Starts with',
         }[value] ?? value
     );
+}
+
+function pluralize(count: number, singular: string, plural?: string): string {
+    return `${count} ${count === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
 
 function groupByDevice(
@@ -104,7 +109,7 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                     >
                         <Link href={botRulesCreate()}>
                             <Plus className="mr-2 size-4" />
-                            Tambah rule
+                            Add rule
                         </Link>
                     </Button>
                 </div>
@@ -112,12 +117,12 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                 <div className="grid gap-3 sm:grid-cols-3">
                     <Stat label="Total rules" value={ruleCount} icon={Bot} />
                     <Stat
-                        label="Device terpakai"
+                        label="Devices used"
                         value={deviceGroups.length}
                         icon={Smartphone}
                     />
                     <Stat
-                        label="Rules aktif"
+                        label="Active rules"
                         value={rules.filter((rule) => rule.is_active).length}
                         icon={MessageSquareReply}
                     />
@@ -129,13 +134,17 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                             <span className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                                 <Bot className="size-6" />
                             </span>
-                            <CardTitle>Belum ada Bot Rule</CardTitle>
+                            <CardTitle>No Bot Rules yet</CardTitle>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Connect a WhatsApp device first. Rules are
+                                created per device.
+                            </p>
                         </CardHeader>
                         <CardContent>
                             <Button asChild>
-                                <Link href={botRulesCreate()}>
+                                <Link href={devicesIndex()}>
                                     <Plus className="mr-2 size-4" />
-                                    Tambah rule
+                                    Connect a device
                                 </Link>
                             </Button>
                         </CardContent>
@@ -177,14 +186,18 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                                         ) : (
                                                             <WifiOff className="mr-1 size-3" />
                                                         )}
-                                                        {
-                                                            device.connection_status
-                                                        }
+                                                        {device.connection_status.replace(
+                                                            '_',
+                                                            ' ',
+                                                        )}
                                                     </Badge>
                                                 </div>
                                                 <p className="mt-1 text-xs text-muted-foreground">
-                                                    {deviceRules.length} rule ·{' '}
-                                                    {activeCount} aktif
+                                                    {pluralize(
+                                                        deviceRules.length,
+                                                        'rule',
+                                                    )}{' '}
+                                                    · {activeCount} active
                                                 </p>
                                             </div>
                                         </div>
@@ -196,7 +209,7 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                         >
                                             <Link href={botRulesCreate()}>
                                                 <Plus className="mr-2 size-3.5" />
-                                                Rule baru
+                                                New rule
                                             </Link>
                                         </Button>
                                     </header>
@@ -214,7 +227,7 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                                                 {rule.name}
                                                             </CardTitle>
                                                             <CardDescription className="mt-1">
-                                                                Prioritas{' '}
+                                                                Priority{' '}
                                                                 {rule.priority}
                                                             </CardDescription>
                                                         </div>
@@ -231,8 +244,8 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                                             }
                                                         >
                                                             {rule.is_active
-                                                                ? 'Aktif'
-                                                                : 'Nonaktif'}
+                                                                ? 'Active'
+                                                                : 'Inactive'}
                                                         </Badge>
                                                     </div>
                                                 </CardHeader>
@@ -252,7 +265,7 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                                     </div>
                                                     <div className="rounded-xl border border-emerald-700/10 bg-emerald-50 p-3 text-sm dark:bg-emerald-950/25">
                                                         <p className="text-[10px] font-bold tracking-wider text-emerald-800 uppercase dark:text-emerald-300">
-                                                            Balasan otomatis
+                                                            Auto reply
                                                         </p>
                                                         <p className="mt-1 line-clamp-3 leading-5 text-emerald-950 dark:text-emerald-100">
                                                             {rule.response_text}
@@ -297,7 +310,7 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                                                     className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/30"
                                                                 >
                                                                     <Trash2 className="mr-2 size-3.5" />
-                                                                    Hapus
+                                                                    Delete
                                                                 </Button>
                                                             )}
                                                         </Form>
@@ -307,10 +320,10 @@ export default function BotRulesIndex({ devices, rules, ruleCount }: Props) {
                                         ))}
                                         {deviceRules.length === 0 && (
                                             <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground lg:col-span-2">
-                                                Device ini belum memiliki Bot
-                                                Rule. Pesan masuk tetap akan
-                                                tersimpan di Inbox tanpa balasan
-                                                otomatis.
+                                                This device has no Bot Rules
+                                                yet. Incoming messages are
+                                                still saved to the Inbox
+                                                without automatic replies.
                                             </div>
                                         )}
                                     </div>

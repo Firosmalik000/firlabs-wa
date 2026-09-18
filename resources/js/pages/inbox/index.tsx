@@ -3,13 +3,16 @@ import {
     ArrowUpRight,
     MessageCircle,
     MessagesSquare,
+    Plus,
     Smartphone,
     Wifi,
     WifiOff,
 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { create as devicesCreate } from '@/routes/devices';
 import { index as inboxIndex, show as inboxShow } from '@/routes/inbox';
 import type { TenantSummary } from '@/types/auth';
 import type { WhatsappConversationSummary } from '@/types/message';
@@ -28,7 +31,7 @@ type DeviceConversationGroup = {
 
 function formatDate(value: string | null): string {
     if (!value) {
-        return 'Belum ada pesan';
+        return 'No messages yet';
     }
 
     return new Intl.DateTimeFormat('id-ID', {
@@ -41,7 +44,7 @@ function previewText(conversation: WhatsappConversationSummary): string {
     const message = conversation.latest_message;
 
     if (!message) {
-        return 'Belum ada pesan dalam percakapan ini.';
+        return 'No messages in this conversation yet.';
     }
 
     if (message.body) {
@@ -52,7 +55,11 @@ function previewText(conversation: WhatsappConversationSummary): string {
         return message.media_original_name;
     }
 
-    return message.kind === 'image' ? 'Gambar' : 'Dokumen';
+    return message.kind === 'image' ? 'Image' : 'Document';
+}
+
+function pluralize(count: number, singular: string, plural?: string): string {
+    return `${count} ${count === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
 
 function initials(name: string): string {
@@ -117,10 +124,10 @@ export default function InboxIndex({
                             variant="outline"
                             className="rounded-full px-3 py-1"
                         >
-                            {deviceGroups.length} device
+                            {pluralize(deviceGroups.length, 'device')}
                         </Badge>
                         <Badge className="rounded-full bg-emerald-600 px-3 py-1 text-white">
-                            {conversationCount} percakapan
+                            {pluralize(conversationCount, 'conversation')}
                         </Badge>
                     </div>
                 </div>
@@ -131,8 +138,20 @@ export default function InboxIndex({
                             <span className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                                 <MessagesSquare className="size-6" />
                             </span>
-                            <CardTitle>Belum ada percakapan</CardTitle>
+                            <CardTitle>No conversations yet</CardTitle>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Connect a WhatsApp device first. New customer
+                                messages will appear here.
+                            </p>
                         </CardHeader>
+                        <CardContent>
+                            <Button asChild size="sm">
+                                <Link href={devicesCreate()}>
+                                    <Plus className="mr-1.5 size-4" />
+                                    Connect a device
+                                </Link>
+                            </Button>
+                        </CardContent>
                     </Card>
                 ) : (
                     <div className="space-y-4">
@@ -177,9 +196,11 @@ export default function InboxIndex({
                                                         </Badge>
                                                     </div>
                                                     <p className="mt-1 text-xs text-muted-foreground">
-                                                        {items.length}{' '}
-                                                        percakapan pada device
-                                                        ini
+                                                        {pluralize(
+                                                            items.length,
+                                                            'conversation',
+                                                        )}{' '}
+                                                        on this device
                                                     </p>
                                                 </div>
                                             </div>
@@ -246,8 +267,8 @@ export default function InboxIndex({
                                             {items.length === 0 && (
                                                 <div className="flex items-center gap-3 px-5 py-8 text-sm text-muted-foreground">
                                                     <MessagesSquare className="size-5 text-emerald-600" />
-                                                    Belum ada percakapan yang
-                                                    diterima device ini.
+                                                    No conversations received
+                                                    on this device yet.
                                                 </div>
                                             )}
                                         </div>

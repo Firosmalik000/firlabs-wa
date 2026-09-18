@@ -61,14 +61,14 @@ export default function AdminUsers({ users }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari nama, email, tenant..."
+                        placeholder="Search name, email, tenant..."
                         resultCount={filteredUsers.length}
                         filter={{
                             label: 'Status user',
                             value: status,
                             onChange: setStatus,
                             options: [
-                                { label: 'Semua status', value: 'all' },
+                                { label: 'All statuses', value: 'all' },
                                 { label: 'Active', value: 'active' },
                                 { label: 'Suspended', value: 'suspended' },
                             ],
@@ -182,7 +182,7 @@ export default function AdminUsers({ users }: Props) {
                                                 colSpan={6}
                                                 className="px-4 py-10 text-center text-muted-foreground"
                                             >
-                                                Tidak ada user yang cocok.
+                                                No matching users found.
                                             </td>
                                         </tr>
                                     )}

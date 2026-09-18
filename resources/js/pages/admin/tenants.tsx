@@ -50,14 +50,14 @@ export default function AdminTenants({ tenants }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari workspace atau slug..."
+                        placeholder="Search workspace or slug..."
                         resultCount={filteredTenants.length}
                         filter={{
                             label: 'Status tenant',
                             value: status,
                             onChange: setStatus,
                             options: [
-                                { label: 'Semua status', value: 'all' },
+                                { label: 'All statuses', value: 'all' },
                                 { label: 'Active', value: 'active' },
                                 { label: 'Suspended', value: 'suspended' },
                             ],
@@ -161,7 +161,7 @@ export default function AdminTenants({ tenants }: Props) {
                                                 colSpan={8}
                                                 className="px-4 py-10 text-center text-muted-foreground"
                                             >
-                                                Tidak ada tenant yang cocok.
+                                                No matching tenants found.
                                             </td>
                                         </tr>
                                     )}

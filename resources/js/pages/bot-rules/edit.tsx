@@ -39,7 +39,7 @@ export default function BotRulesEdit({ rule, devices }: Props) {
                 <Heading title={`Edit ${rule.name}`} />
 
                 <Card className="max-w-3xl">
-                    <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4">
+                    <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                         <CardTitle>Rule details</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -78,7 +78,11 @@ export default function BotRulesEdit({ rule, devices }: Props) {
                                                     value={device.id}
                                                 >
                                                     {device.display_name} (
-                                                    {device.gowa_device_id})
+                                                    {device.connection_status.replace(
+                                                        '_',
+                                                        ' ',
+                                                    )}
+                                                    )
                                                 </option>
                                             ))}
                                         </select>
@@ -102,6 +106,12 @@ export default function BotRulesEdit({ rule, devices }: Props) {
                                         <Label htmlFor="match_type">
                                             Match type
                                         </Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            Contains matches anywhere in the
+                                            message, Exact requires a full
+                                            match, Starts with matches the
+                                            beginning.
+                                        </p>
                                         <select
                                             id="match_type"
                                             name="match_type"
@@ -158,6 +168,10 @@ export default function BotRulesEdit({ rule, devices }: Props) {
                                         <Label htmlFor="priority">
                                             Priority
                                         </Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            Lower numbers are checked first
+                                            when several rules could match.
+                                        </p>
                                         <Input
                                             id="priority"
                                             name="priority"
@@ -195,7 +209,9 @@ export default function BotRulesEdit({ rule, devices }: Props) {
                                             size="sm"
                                             disabled={processing}
                                         >
-                                            Save changes
+                                            {processing
+                                                ? 'Saving...'
+                                                : 'Save changes'}
                                         </Button>
                                         <Button
                                             asChild
@@ -239,3 +255,10 @@ export default function BotRulesEdit({ rule, devices }: Props) {
         </>
     );
 }
+
+BotRulesEdit.layout = {
+    breadcrumbs: [
+        { title: 'Bot Rules', href: botRulesIndex() },
+        { title: 'Edit rule', href: '#' },
+    ],
+};

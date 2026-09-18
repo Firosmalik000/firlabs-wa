@@ -51,14 +51,14 @@ export default function AdminWebhookLogs({ logs }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari event, tenant, device..."
+                        placeholder="Search event, tenant, device..."
                         resultCount={filteredLogs.length}
                         filter={{
                             label: 'Webhook status',
                             value: status,
                             onChange: setStatus,
                             options: [
-                                { label: 'Semua status', value: 'all' },
+                                { label: 'All statuses', value: 'all' },
                                 ...statuses.map((value) => ({
                                     label: value.replace('_', ' '),
                                     value,
@@ -116,7 +116,7 @@ export default function AdminWebhookLogs({ logs }: Props) {
                                                 colSpan={7}
                                                 className="px-4 py-10 text-center text-muted-foreground"
                                             >
-                                                Tidak ada webhook yang cocok.
+                                                No matching webhooks found.
                                             </td>
                                         </tr>
                                     )}

@@ -46,7 +46,7 @@ export default function BotRulesCreate({ devices }: Props) {
                     </Card>
                 ) : (
                     <Card className="max-w-3xl">
-                        <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4">
+                        <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                             <CardTitle>Rule details</CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
@@ -86,7 +86,11 @@ export default function BotRulesCreate({ devices }: Props) {
                                                         value={device.id}
                                                     >
                                                         {device.display_name} (
-                                                        {device.gowa_device_id})
+                                                        {device.connection_status.replace(
+                                                            '_',
+                                                            ' ',
+                                                        )}
+                                                        )
                                                     </option>
                                                 ))}
                                             </select>
@@ -112,6 +116,12 @@ export default function BotRulesCreate({ devices }: Props) {
                                             <Label htmlFor="match_type">
                                                 Match type
                                             </Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                Contains matches anywhere in
+                                                the message, Exact requires a
+                                                full match, Starts with matches
+                                                the beginning.
+                                            </p>
                                             <select
                                                 id="match_type"
                                                 name="match_type"
@@ -168,6 +178,11 @@ export default function BotRulesCreate({ devices }: Props) {
                                             <Label htmlFor="priority">
                                                 Priority
                                             </Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                Lower numbers are checked
+                                                first when several rules could
+                                                match.
+                                            </p>
                                             <Input
                                                 id="priority"
                                                 name="priority"
@@ -207,7 +222,9 @@ export default function BotRulesCreate({ devices }: Props) {
                                                 size="sm"
                                                 disabled={processing}
                                             >
-                                                Create rule
+                                                {processing
+                                                    ? 'Creating...'
+                                                    : 'Create rule'}
                                             </Button>
                                             <Button
                                                 asChild
@@ -229,3 +246,10 @@ export default function BotRulesCreate({ devices }: Props) {
         </>
     );
 }
+
+BotRulesCreate.layout = {
+    breadcrumbs: [
+        { title: 'Bot Rules', href: botRulesIndex() },
+        { title: 'Add rule', href: '#' },
+    ],
+};

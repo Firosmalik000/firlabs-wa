@@ -60,7 +60,7 @@ function formatTime(value: string | null): string {
 
 function formatDay(value: string | null): string {
     if (!value) {
-        return 'Belum ada aktivitas';
+        return 'No activity yet';
     }
 
     const date = new Date(value);
@@ -78,7 +78,7 @@ function formatDay(value: string | null): string {
 
 function formatFullDate(value: string | null): string {
     if (!value) {
-        return 'Belum tersedia';
+        return 'Not available';
     }
 
     return new Intl.DateTimeFormat('id-ID', {
@@ -101,14 +101,18 @@ function previewText(conversation: WhatsappConversationSummary): string {
     const message = conversation.latest_message;
 
     if (!message) {
-        return 'Belum ada pesan';
+        return 'No messages yet';
     }
 
     if (message.body) {
         return message.body;
     }
 
-    return message.kind === 'image' ? 'Foto' : 'Dokumen';
+    return message.kind === 'image' ? 'Photo' : 'Document';
+}
+
+function pluralize(count: number, singular: string, plural?: string): string {
+    return `${count} ${count === 1 ? singular : (plural ?? `${singular}s`)}`;
 }
 
 function fileSize(size: number | null): string {
@@ -153,6 +157,7 @@ export default function InboxShow({
     const [search, setSearch] = useState('');
     const deferredSearch = useDeferredValue(search.trim().toLowerCase());
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const form = useForm<ReplyForm>({
         body: '',
@@ -169,7 +174,21 @@ export default function InboxShow({
     );
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ block: 'end' });
+        const container = scrollContainerRef.current;
+
+        if (!container) {
+            return;
+        }
+
+        const nearBottom =
+            container.scrollHeight -
+                container.scrollTop -
+                container.clientHeight <
+            120;
+
+        if (nearBottom) {
+            messagesEndRef.current?.scrollIntoView({ block: 'end' });
+        }
     }, [messages.length]);
 
     const filteredConversations = conversations.filter((item) => {
@@ -228,8 +247,11 @@ export default function InboxShow({
                                         Team Inbox
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {tenant.name} · {conversations.length}{' '}
-                                        percakapan
+                                        {tenant.name} ·{' '}
+                                        {pluralize(
+                                            conversations.length,
+                                            'conversation',
+                                        )}
                                     </p>
                                 </div>
                                 <span className="flex size-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
@@ -244,7 +266,7 @@ export default function InboxShow({
                                     onChange={(event) =>
                                         setSearch(event.target.value)
                                     }
-                                    placeholder="Cari nama atau nomor..."
+                                    placeholder="Search name or number..."
                                     className="h-10 rounded-xl border-0 bg-black/5 pl-9 shadow-none dark:bg-white/8"
                                 />
                             </label>
@@ -301,7 +323,7 @@ export default function InboxShow({
 
                             {filteredConversations.length === 0 && (
                                 <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                                    Percakapan tidak ditemukan.
+                                    No conversation found.
                                 </div>
                             )}
                         </div>
@@ -350,7 +372,10 @@ export default function InboxShow({
                             </Badge>
                         </header>
 
-                        <div className="relative min-h-0 flex-1 overflow-y-auto">
+                        <div
+                            ref={scrollContainerRef}
+                            className="relative min-h-0 flex-1 overflow-y-auto"
+                        >
                             <div
                                 className="pointer-events-none absolute inset-0 opacity-[0.045] dark:opacity-[0.035]"
                                 style={{
@@ -364,11 +389,12 @@ export default function InboxShow({
                                     <div className="m-auto max-w-sm rounded-2xl bg-white/90 p-6 text-center shadow-sm dark:bg-zinc-900/90">
                                         <Inbox className="mx-auto mb-3 size-7 text-emerald-600" />
                                         <p className="font-semibold">
-                                            Belum ada pesan
+                                            No messages yet
                                         </p>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            Semua pesan masuk akan tampil di
-                                            sini, meskipun Bot Rule tidak aktif.
+                                            All incoming messages will appear
+                                            here, even when no Bot Rule is
+                                            active.
                                         </p>
                                     </div>
                                 ) : (
@@ -448,7 +474,7 @@ export default function InboxShow({
                                                                     <span className="min-w-0">
                                                                         <span className="block truncate font-medium">
                                                                             {message.media_original_name ??
-                                                                                'Dokumen'}
+                                                                                'Document'}
                                                                         </span>
                                                                         <span className="text-xs opacity-60">
                                                                             {fileSize(
@@ -475,7 +501,7 @@ export default function InboxShow({
                                                         <div className="mt-2 border-t border-red-500/20 pt-2">
                                                             <p className="text-xs text-red-600 dark:text-red-300">
                                                                 {message.error_message ??
-                                                                    'Pesan gagal dikirim.'}
+                                                                    'Message failed to send.'}
                                                             </p>
                                                             <Link
                                                                 href={retryMessage(
@@ -490,7 +516,7 @@ export default function InboxShow({
                                                                 className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-red-600"
                                                             >
                                                                 <RotateCcw className="size-3" />
-                                                                Coba lagi
+                                                                Try again
                                                             </Link>
                                                         </div>
                                                     )}
@@ -536,7 +562,7 @@ export default function InboxShow({
                                             className="mb-2"
                                         >
                                             <AlertTitle>
-                                                Pesan belum dapat dikirim
+                                                Message could not be sent
                                             </AlertTitle>
                                             <AlertDescription>
                                                 {form.errors.body ??
@@ -582,7 +608,7 @@ export default function InboxShow({
                                             <label htmlFor="message-media">
                                                 <Paperclip className="size-5" />
                                                 <span className="sr-only">
-                                                    Lampirkan file
+                                                    Attach file
                                                 </span>
                                             </label>
                                         </Button>
@@ -604,7 +630,7 @@ export default function InboxShow({
                                                 }
                                             }}
                                             rows={1}
-                                            placeholder="Ketik pesan..."
+                                            placeholder="Type a message..."
                                             className="max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border border-black/8 bg-white px-4 py-3 text-sm shadow-sm transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10 dark:bg-zinc-900"
                                         />
                                         <Button
@@ -619,7 +645,7 @@ export default function InboxShow({
                                         >
                                             <SendHorizontal className="size-5" />
                                             <span className="sr-only">
-                                                Kirim pesan
+                                                Send message
                                             </span>
                                         </Button>
                                     </div>
@@ -636,8 +662,8 @@ export default function InboxShow({
                                 </form>
                             ) : (
                                 <div className="mx-auto max-w-4xl rounded-xl bg-amber-50 px-4 py-3 text-center text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                                    Balasan tidak tersedia pada kondisi
-                                    workspace saat ini.
+                                    Replies are unavailable for this
+                                    workspace right now.
                                 </div>
                             )}
                         </footer>
@@ -673,7 +699,7 @@ export default function InboxShow({
                                 />
                                 <Detail
                                     icon={Clock3}
-                                    label="Aktivitas terakhir"
+                                    label="Last activity"
                                     value={formatFullDate(
                                         conversation.last_message_at,
                                     )}
@@ -686,10 +712,10 @@ export default function InboxShow({
                                     Automation
                                 </div>
                                 <p className="mt-2 text-xs leading-5 text-emerald-800/75 dark:text-emerald-200/70">
-                                    Bot Rule hanya mengirim jawaban otomatis
-                                    jika trigger cocok. Semua pesan pelanggan
-                                    tetap masuk ke inbox saat bot aktif maupun
-                                    nonaktif.
+                                    Bot Rules only send automatic replies when
+                                    a trigger matches. All customer messages
+                                    still arrive in the inbox whether the bot
+                                    is active or not.
                                 </p>
                             </div>
                         </div>
@@ -730,7 +756,7 @@ function Detail({
             <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">{label}</p>
                 <p className="mt-0.5 text-sm font-medium break-words">
-                    {value ?? 'Belum tersedia'}
+                    {value ?? 'Not available'}
                 </p>
             </div>
         </div>

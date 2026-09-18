@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { dashboard } from '@/routes';
 import {
     index as devicesIndex,
     show as devicesShow,
@@ -28,7 +29,7 @@ export default function DevicesEdit({ device }: Props) {
                 <Heading title={`Edit ${device.display_name}`} />
 
                 <Card className="max-w-3xl">
-                    <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4">
+                    <CardHeader className="border-b border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
                         <CardTitle>Device details</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -79,7 +80,7 @@ export default function DevicesEdit({ device }: Props) {
                                             size="sm"
                                             disabled={processing}
                                         >
-                                            Save changes
+                                            {processing ? 'Saving...' : 'Save changes'}
                                         </Button>
 
                                         <Button
@@ -89,16 +90,6 @@ export default function DevicesEdit({ device }: Props) {
                                         >
                                             <Link href={devicesShow(device)}>
                                                 Back to details
-                                            </Link>
-                                        </Button>
-
-                                        <Button
-                                            asChild
-                                            size="sm"
-                                            variant="ghost"
-                                        >
-                                            <Link href={devicesIndex()}>
-                                                Back to devices
                                             </Link>
                                         </Button>
                                     </div>
@@ -113,3 +104,11 @@ export default function DevicesEdit({ device }: Props) {
         </>
     );
 }
+
+DevicesEdit.layout = {
+    breadcrumbs: [
+        { title: 'Dashboard', href: dashboard() },
+        { title: 'Devices', href: devicesIndex() },
+        { title: 'Edit device', href: '#' },
+    ],
+};

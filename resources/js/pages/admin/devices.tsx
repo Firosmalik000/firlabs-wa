@@ -62,14 +62,14 @@ export default function AdminDevices({ devices }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari device, nomor, tenant..."
+                        placeholder="Search device, number, tenant..."
                         resultCount={filteredDevices.length}
                         filter={{
                             label: 'Connection status',
                             value: connection,
                             onChange: setConnection,
                             options: [
-                                { label: 'Semua koneksi', value: 'all' },
+                                { label: 'All connections', value: 'all' },
                                 { label: 'Connected', value: 'connected' },
                                 {
                                     label: 'Disconnected',
@@ -172,7 +172,7 @@ export default function AdminDevices({ devices }: Props) {
                                                         </div>
                                                         <div className="text-[10px] text-muted-foreground">
                                                             {device.phone_number ??
-                                                                'Belum terhubung'}
+                                                                'Not connected'}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -221,7 +221,7 @@ export default function AdminDevices({ devices }: Props) {
                                                 colSpan={7}
                                                 className="px-4 py-10 text-center text-muted-foreground"
                                             >
-                                                Tidak ada device yang cocok.
+                                                No matching devices found.
                                             </td>
                                         </tr>
                                     )}

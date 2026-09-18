@@ -69,14 +69,14 @@ export default function AdminAuditLogs({ logs }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari aksi, user, tenant, device, IP..."
+                        placeholder="Search action, user, tenant, device, IP..."
                         resultCount={filteredLogs.length}
                         filter={{
                             label: 'Aksi',
                             value: action,
                             onChange: setAction,
                             options: [
-                                { label: 'Semua aksi', value: 'all' },
+                                { label: 'All actions', value: 'all' },
                                 ...actions.map((value) => ({
                                     label: actionLabel(value),
                                     value,
@@ -88,7 +88,7 @@ export default function AdminAuditLogs({ logs }: Props) {
                         {filteredLogs.length === 0 ? (
                             <div className="flex items-center justify-center gap-2 px-4 py-12 text-sm text-muted-foreground">
                                 <ScrollText className="size-5 text-emerald-600" />{' '}
-                                Belum ada audit log.
+                                No audit logs yet.
                             </div>
                         ) : (
                             <div className="overflow-x-auto">

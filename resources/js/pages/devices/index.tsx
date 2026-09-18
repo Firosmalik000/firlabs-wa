@@ -6,6 +6,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { dashboard } from '@/routes';
 import {
     create as devicesCreate,
     index as devicesIndex,
@@ -37,6 +38,21 @@ export default function DevicesIndex({ devices, canCreate }: Props) {
     const [search, setSearch] = useState('');
     const [connection, setConnection] = useState('all');
     const deferredSearch = useDeferredValue(search.trim().toLowerCase());
+
+    const connectionColors: Record<string, string> = {
+        connected:
+            'border-emerald-600/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
+        connecting:
+            'border-sky-600/20 bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300',
+        waiting_scan:
+            'border-sky-600/20 bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300',
+        error: 'border-amber-600/20 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
+        disconnected:
+            'border-amber-600/20 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
+        logged_out:
+            'border-amber-600/20 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
+    };
+
     const filteredDevices = devices.filter((device) => {
         const matchesSearch = [
             device.display_name,
@@ -76,14 +92,14 @@ export default function DevicesIndex({ devices, canCreate }: Props) {
                     <DataTableToolbar
                         search={search}
                         onSearchChange={setSearch}
-                        placeholder="Cari device atau nomor..."
+                        placeholder="Search device or phone..."
                         resultCount={filteredDevices.length}
                         filter={{
                             label: 'Connection',
                             value: connection,
                             onChange: setConnection,
                             options: [
-                                { label: 'Semua koneksi', value: 'all' },
+                                { label: 'All connections', value: 'all' },
                                 { label: 'Connected', value: 'connected' },
                                 {
                                     label: 'Disconnected',
@@ -176,7 +192,7 @@ export default function DevicesIndex({ devices, canCreate }: Props) {
                                                     </Badge>
                                                     <Badge
                                                         variant="outline"
-                                                        className={`h-5 text-[10px] ${device.connection_status === 'connected' ? 'border-emerald-600/20 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' : ''}`}
+                                                        className={`h-5 text-[10px] ${connectionColors[device.connection_status] || ''}`}
                                                     >
                                                         {device.connection_status.replace(
                                                             '_',
@@ -195,13 +211,30 @@ export default function DevicesIndex({ devices, canCreate }: Props) {
                                             </td>
                                         </tr>
                                     ))}
-                                    {filteredDevices.length === 0 && (
+                                    {filteredDevices.length === 0 && devices.length > 0 && (
                                         <tr>
                                             <td
                                                 colSpan={6}
                                                 className="px-4 py-10 text-center text-muted-foreground"
                                             >
-                                                Tidak ada device yang cocok.
+                                                No matching devices found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {devices.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan={6}
+                                                className="px-4 py-16 text-center text-muted-foreground"
+                                            >
+                                                <Smartphone className="mx-auto mb-4 size-10 opacity-30" />
+                                                <p className="font-semibold text-foreground">No devices yet</p>
+                                                <p className="mt-1 mb-4 text-sm">You haven't connected any devices to this workspace.</p>
+                                                {canCreate && (
+                                                    <Button asChild size="sm">
+                                                        <Link href={devicesCreate()}>Connect your first device</Link>
+                                                    </Button>
+                                                )}
                                             </td>
                                         </tr>
                                     )}
@@ -216,5 +249,8 @@ export default function DevicesIndex({ devices, canCreate }: Props) {
 }
 
 DevicesIndex.layout = {
-    breadcrumbs: [{ title: 'Devices', href: devicesIndex() }],
+    breadcrumbs: [
+        { title: 'Dashboard', href: dashboard() },
+        { title: 'Devices', href: devicesIndex() },
+    ],
 };

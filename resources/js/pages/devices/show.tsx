@@ -1,7 +1,8 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePoll } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
+    Check,
     CheckCircle2,
     Clock3,
     Copy,
@@ -19,6 +20,7 @@ import {
     Wifi,
     WifiOff,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import {
     edit as deviceEdit,
@@ -36,6 +38,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { dashboard } from '@/routes';
 import { index as devicesIndex } from '@/routes/devices';
 import type { TenantSummary } from '@/types/auth';
 import type {
@@ -101,6 +104,38 @@ export default function DevicesShow({
     const configurationWasUpdated =
         gatewayConfigured &&
         device.last_error_message?.includes('GOWA is not configured');
+    const awaitingConnection =
+        device.connection_status === 'waiting_scan' ||
+        device.connection_status === 'connecting';
+    const [pairCodeCopied, setPairCodeCopied] = useState(false);
+    const copyTimeoutRef = useRef<number | null>(null);
+
+    const poll = usePoll(
+        8000,
+        { only: ['device'] },
+        { autoStart: false, mode: 'rest' },
+    );
+    const pollRef = useRef(poll);
+
+    useEffect(() => {
+        pollRef.current = poll;
+    });
+
+    useEffect(() => {
+        if (awaitingConnection) {
+            pollRef.current.start();
+        } else {
+            pollRef.current.stop();
+        }
+    }, [awaitingConnection]);
+
+    useEffect(() => {
+        return () => {
+            if (copyTimeoutRef.current !== null) {
+                window.clearTimeout(copyTimeoutRef.current);
+            }
+        };
+    }, []);
 
     function submitPhonePairing(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -111,7 +146,17 @@ export default function DevicesShow({
 
     function copyPairCode() {
         if (device.pairing.pair_code) {
-            void navigator.clipboard.writeText(device.pairing.pair_code);
+            void navigator.clipboard.writeText(device.pairing.pair_code).then(() => {
+                setPairCodeCopied(true);
+
+                if (copyTimeoutRef.current !== null) {
+                    window.clearTimeout(copyTimeoutRef.current);
+                }
+
+                copyTimeoutRef.current = window.setTimeout(() => {
+                    setPairCodeCopied(false);
+                }, 2000);
+            });
         }
     }
 
@@ -147,13 +192,16 @@ export default function DevicesShow({
                                     ? ` - ${device.description}`
                                     : ''}
                             </p>
-                            <p className="font-mono text-xs text-muted-foreground">
-                                {device.gowa_device_id}
-                            </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {awaitingConnection && (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
+                                <span className="size-1.5 animate-pulse rounded-full bg-current" />
+                                Auto-refreshing
+                            </span>
+                        )}
                         <Button asChild variant="outline">
                             <Link
                                 href={deviceSync(device)}
@@ -216,8 +264,7 @@ export default function DevicesShow({
                                     <div>
                                         <CardTitle>Scan QR code</CardTitle>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            Cara tercepat jika ponsel ada di
-                                            dekat Anda.
+                                            Fastest when your phone is nearby.
                                         </p>
                                     </div>
                                 </div>
@@ -259,12 +306,12 @@ export default function DevicesShow({
                                                 <QrCode className="size-8 text-muted-foreground" />
                                             </span>
                                             <p className="font-semibold">
-                                                QR code belum tersedia
+                                                QR code not available
                                             </p>
                                             <p className="text-sm leading-6 text-muted-foreground">
-                                                Generate QR baru, lalu buka
-                                                WhatsApp di ponsel dan pilih
-                                                Perangkat tertaut.
+                                                Generate a new QR code, then
+                                                open WhatsApp on your phone and
+                                                choose Linked devices.
                                             </p>
                                         </div>
                                     )}
@@ -272,13 +319,14 @@ export default function DevicesShow({
 
                                 <ol className="grid gap-2 text-sm text-muted-foreground">
                                     <Instruction number="1">
-                                        Buka WhatsApp, lalu Perangkat tertaut.
+                                        Open WhatsApp, then Linked devices.
                                     </Instruction>
                                     <Instruction number="2">
-                                        Pilih "Tautkan perangkat".
+                                        Choose &quot;Link a device&quot;.
                                     </Instruction>
                                     <Instruction number="3">
-                                        Scan QR, lalu tekan Refresh status.
+                                        Scan the QR code, then press Refresh
+                                        status.
                                     </Instruction>
                                 </ol>
 
@@ -311,7 +359,8 @@ export default function DevicesShow({
                                             Connect with phone number
                                         </CardTitle>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            Dapatkan kode pairing tanpa scan QR.
+                                            Get a pairing code without scanning
+                                            a QR.
                                         </p>
                                     </div>
                                 </div>
@@ -325,11 +374,23 @@ export default function DevicesShow({
                                         <button
                                             type="button"
                                             onClick={copyPairCode}
+                                            title="Copy pairing code"
+                                            aria-live="polite"
                                             className="group flex items-center gap-3 rounded-2xl border bg-background px-5 py-3 font-mono text-2xl font-black tracking-[0.18em] shadow-sm transition hover:border-sky-400"
                                         >
                                             {device.pairing.pair_code}
-                                            <Copy className="size-4 text-muted-foreground transition group-hover:text-sky-600" />
+                                            {pairCodeCopied ? (
+                                                <Check className="size-4 text-emerald-600" />
+                                            ) : (
+                                                <Copy className="size-4 text-muted-foreground transition group-hover:text-sky-600" />
+                                            )}
                                         </button>
+                                        <p
+                                            className={`text-xs font-medium text-emerald-600 transition-opacity ${pairCodeCopied ? 'opacity-100' : 'opacity-0'}`}
+                                            aria-hidden={!pairCodeCopied}
+                                        >
+                                            Copied to clipboard
+                                        </p>
                                         <p className="text-xs text-muted-foreground">
                                             Requested for +
                                             {device.pairing.phone}
@@ -341,13 +402,13 @@ export default function DevicesShow({
                                             <Smartphone className="size-8 text-muted-foreground" />
                                         </span>
                                         <p className="font-semibold">
-                                            Masukkan nomor WhatsApp
+                                            Enter your WhatsApp number
                                         </p>
                                         <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                                            Nomor ini hanya digunakan untuk
-                                            meminta pairing code. Nomor aktual
-                                            diverifikasi lagi dari GOWA setelah
-                                            login berhasil.
+                                            This number is only used to request
+                                            the pairing code. The actual number
+                                            is verified again after a
+                                            successful login.
                                         </p>
                                     </div>
                                 )}
@@ -367,7 +428,7 @@ export default function DevicesShow({
                                                 type="tel"
                                                 inputMode="tel"
                                                 autoComplete="tel"
-                                                placeholder="081234567890 atau 6281234567890"
+                                                placeholder="081234567890 or 6281234567890"
                                                 value={phoneForm.data.phone}
                                                 onChange={(event) =>
                                                     phoneForm.setData(
@@ -385,8 +446,9 @@ export default function DevicesShow({
                                             />
                                         </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Nomor lokal 08 otomatis dikonversi
-                                            ke format Indonesia 62.
+                                            Local 08 numbers are automatically
+                                            converted to the Indonesian 62
+                                            format.
                                         </p>
                                         <InputError
                                             message={phoneForm.errors.phone}
@@ -410,13 +472,14 @@ export default function DevicesShow({
 
                                 <ol className="grid gap-2 text-sm text-muted-foreground">
                                     <Instruction number="1">
-                                        Buka WhatsApp, lalu Perangkat tertaut.
+                                        Open WhatsApp, then Linked devices.
                                     </Instruction>
                                     <Instruction number="2">
-                                        Pilih "Tautkan dengan nomor telepon".
+                                        Choose &quot;Link with phone
+                                        number&quot;.
                                     </Instruction>
                                     <Instruction number="3">
-                                        Masukkan kode di atas, lalu Refresh
+                                        Enter the code above, then Refresh
                                         status.
                                     </Instruction>
                                 </ol>
@@ -522,6 +585,14 @@ export default function DevicesShow({
     );
 }
 
+DevicesShow.layout = {
+    breadcrumbs: [
+        { title: 'Dashboard', href: dashboard() },
+        { title: 'Devices', href: devicesIndex() },
+        { title: 'Device details', href: '#' },
+    ],
+};
+
 function ConnectedPanel({ device }: { device: WhatsappDeviceSummary }) {
     return (
         <div className="relative overflow-hidden rounded-3xl border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-900 dark:bg-emerald-950/25">
@@ -536,10 +607,8 @@ function ConnectedPanel({ device }: { device: WhatsappDeviceSummary }) {
                     </p>
                     <p className="text-sm leading-6 text-emerald-800/75 dark:text-emerald-200/70">
                         {device.phone_number
-                            ? `+${device.phone_number}`
-                            : 'Phone number detected'}{' '}
-                        is ready to receive and send messages through this
-                        workspace.
+                            ? `+${device.phone_number} is ready to receive and send messages through this workspace.`
+                            : 'This device is ready to receive and send messages through this workspace.'}
                     </p>
                 </div>
                 <Wifi className="ml-auto hidden size-8 text-emerald-600 sm:block" />
